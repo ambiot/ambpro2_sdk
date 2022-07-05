@@ -1,0 +1,9 @@
+#define RTL_FW_COMPILE_TIME RTL8735BFW_COMPILE_TIME 
+#define RTL_FW_COMPILE_DATE RTL8735BFW_COMPILE_DATE 
+#define UTS_VERSION "@_configuration_time@" 
+#define RTL8735BFW_COMPILE_TIME "@_configuration_time@" 
+#define RTL8735BFW_COMPILE_DATE "@_configuration_date@" 
+#define RTL8735BFW_COMPILE_BY "@_user_name@" 
+#define RTL8735BFW_COMPILE_HOST "@_host_name@" 
+#define RTL8735BFW_COMPILE_DOMAIN "@_fqdn@" 
+#define RTL8735BFW_COMPILER "@_compiler_name@" 

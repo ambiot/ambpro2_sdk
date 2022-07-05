@@ -1,0 +1,142 @@
+{
+  "IsLib": "N",
+  "OutLib": "hal_video.a",
+  
+  "TargetDep": [
+    "rtl8735b"
+  ],
+
+  "DisableOnNoSecure": "N",
+
+  "SecureDep": [
+    "NonSecure",
+    "Ignore"
+  ],
+  
+  "ChipVersionDep": [
+    "Cut-A",
+    "Cut-B",
+    "Cut-C",
+    "Cut-D"
+  ],
+  
+  "BuildModeDep": [
+    "Ram",
+	"Boot",
+    "All"
+  ],
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+    "-DCTBRC_STRENGTH",
+    "-Wno-format -Wno-implicit-function-declaration",
+    "-Werror"
+    
+  ],
+  
+  "excludePath": [
+    "enc/linux_reference/test/camstab",    
+    "enc/source/camstab"    
+  ],
+
+  "excludeIncludes": [
+    "hal/rtl8735b/verify/sw_isp",
+    "hal/rtl8735b/verify/isp",
+    "mbed-drivers/include",
+    "sw/lib/network/ssl/mbedtls-2.4.0/include/mbedtls"    
+  ],
+
+  "excludeSource": [     
+    "sw_cu_tree.c",
+    "sw_test_id.c"  
+  ],
+  
+  "obj_copy": [
+	"make -C voe_bin all",
+	"-cp -f voe_bin/*.o $(OBJCOPYDIR)",
+	"-cp -f voe_bin/voe.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/voe_fcs.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data_dummy.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/sensor.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/iq.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data_gc4653.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data_gc2053.bin $(OBJCOPYDIR)/../output",	
+	"-cp -f voe_bin/sensor_gc4653.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data_DvsimC5.bin $(OBJCOPYDIR)/../output",	
+	"-cp -f voe_bin/fcs_data_verifyC1.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/fcs_data_sc2336.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/sensor_sc2336.bin $(OBJCOPYDIR)/../output"
+  ],
+  
+
+  "PlatformCfg": {
+    "CONFIG_VIDEO_EN": {
+      "0" : {		
+	    "Value": 0,
+	    "excludePath": [	    	
+        ],
+        "excludeSource": [
+           "hal_video.c"
+        ]
+
+      }      
+    },
+    "CONFIG_VERIFY_ENC": {
+      "0" : {		
+	    "Value": 0,
+        "excludeIncludes": [
+           "hal/rtl8735b/verify/video/lib_enc",
+            "hal/rtl8735b/verify/video/lib_isp"
+        ],     
+	    "excludePath": [	    	
+        ],
+        "excludeSource": [
+        ]
+
+      }      
+    },
+    
+    "CONFIG_SEMIHOST_EN": {
+      "0" : {		
+	    "Value": 0,
+	    "excludePath": [	    	
+		    "semihost"
+        ]
+      }      
+    },
+    "CONFIG_VERIFY_VOE": {
+      "1" : {		
+	    "Value": 1,
+	    "extraIncludes": [	    	
+      		"hal_voe.h",
+      		"rtl8735b_voe_cmd.h",
+      		"rtl8735b_voe_type.h" 
+        ],
+        "extraSource": [
+           "hal_voe.c"
+        ]
+
+      }      
+    }    
+  },   
+  "PlatformCfgDep": {
+    "CONFIG_VIDEO_EN": 1
+  },
+
+  "rtl8735b": {
+    "SecureDep": [
+      "NonSecure",
+      "Ignore"
+    ]    
+  },
+  
+  "ARMCC-v5": {
+    "CCFlags": [
+      "--gnu"
+	]
+  }
+
+}

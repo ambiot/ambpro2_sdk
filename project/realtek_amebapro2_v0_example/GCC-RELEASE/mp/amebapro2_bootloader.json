@@ -1,0 +1,57 @@
+{
+    "msg_level":3,
+
+	"PROFILE":["BOOTLOADER"],
+	"BOOTLOADER":{
+		"manifest":"MANIFEST",
+		"images":[
+			"BOOT"
+		]
+	},
+	"MANIFEST":{
+		"label":"RTL8735B",
+		"vrf_alg": "NA_VRF_CHECK",
+		"tlv":[
+			{"type":"PK", "length":384, "value":"auto"},
+			{"type":"TYPE_ID", "length":2, "value":"IMG_BL"},
+			{"type":"VERSION", "length":32, "value":"FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"},
+			{"type":"TIMST", "length":8, "value":"auto"},
+			{"type":"IMGSZ", "length":4, "value":"auto"},
+			{"type":"ENCALG", "length":1, "value":"auto"},
+			{"type":"ENCKN", "length":32, "value":"auto"},
+			{"type":"ENCKS", "length":32, "value":"auto"},
+			{"type":"ENCIV", "length":16, "value":"auto"},
+			{"type":"HSHALG", "length":1, "value":"auto"},
+			{"type":"HSHKN", "length":32, "value":"auto"},
+			{"type":"HSHKS", "length":32, "value":"auto"},
+			{"type":"IE_RESV", "length":32, "value":"auto"},
+			{"type":"HASH", "length":32, "value":"auto"}
+		]
+	},
+	"BOOT": {
+		"source":"bootloader.axf",
+		"header":{
+			"type":"IMG_BL", 
+			"s_jtag_ctrl":"FFFFFFFF",
+			"s_jtag_s_key": "auto",
+			"s_jtag_ns_key": "auto",
+			"entry": "__ram_start_table_start__"
+		},
+		"blocks" : ["itcm", "sram"],
+		"itcm": {
+			"type":"SIMG_ITCM",
+			"sections": [
+				".ram.img.signature",
+				".ram.func.table",
+				".ram.data",
+				".ram.code_text"
+			]
+		},
+		"sram": {
+			"type":"SIMG_SRAM",
+			"sections": [
+				".ram.code_rodata"
+			]
+		}
+	}
+}

@@ -1,0 +1,22 @@
+{
+    "msg_level":3,
+
+	"PROFILE":["FWFS"],
+	"FWFS":{
+        "files":[
+			"MODEL0"
+		]
+	},
+    "MODEL0":{
+		"name" : "yolov4_tiny.nb",
+		"source":"binary",
+		"file":"yolov4_tiny.nb"
+ 
+    },
+	"MODEL1":{
+		"name" : "yolov7_tiny.nb",
+		"source":"binary",
+		"file":"yolov7_tiny.nb"
+
+    }
+}

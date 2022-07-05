@@ -1,0 +1,34 @@
+{
+  "IsLib": "N",
+  "OutLib": "stdio_port.a",
+
+  "BuildModeDep": [
+    "Rom",
+    "All"
+  ],
+
+  "SecureDep": [
+	"Secure",
+   	"NonSecure",
+   	"Ignore"
+  ],
+  
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+    "-DROM_REGION=1"
+  ],
+  
+  "excludePath": [
+  ],
+
+  "excludeSource": [
+  ],
+
+  "ARMCC-v5": {
+      "CCFlags": [
+      "--gnu"
+    ]
+  }    
+}

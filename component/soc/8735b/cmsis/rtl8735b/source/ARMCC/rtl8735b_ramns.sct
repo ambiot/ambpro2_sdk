@@ -1,0 +1,119 @@
+; *************************************************************
+; *** Scatter-Loading Description File for RTL8195BHP       ***
+; *************************************************************
+LR_ITCM 0x00000000 0x001FF000  {    ; load region size_region
+  _ITCM_RAM_RO 0x00010000 0x00020000  {  ; ITCM for Text & RO Data
+	* (.itcm_ram.text*)
+	* (.itcm_ram.rodata*)
+
+	freertos_service.o(+RO)
+	cmsis_os.o(+RO)
+	croutine.o(+RO)
+	event_groups.o(+RO)
+	list.o(+RO)
+	queue.o(+RO)
+	tasks.o(+RO)
+	timers.o(+RO)
+	port.o(+RO)
+	heap_5.o(+RO)
+  }
+}
+
+LR_DTCM 0x20008000 0x00008000  {    ; load region size_region
+  _DTCM_RAM 0x20008000 UNINIT FIXED {
+	* (.dtcm_ram.bss*)
+  }
+  
+  _STACK 0x2000F000 UNINIT FIXED {
+  	ram_start.o (.stack)
+  }
+}
+
+LR_XIP 0x9BF80000 0x80000  {    ; load region size_region
+
+  _XIP_CODE 0x9BF80140 FIXED {
+	*(.xip.text*)
+  }
+
+  _XIP_RODATA +0 FIXED {
+	*(.xip.rodata*)
+  }
+}
+
+;the range of PSRAM memory in non-secure region must match with the SAU setting at ram_start()
+LR_PSRAM 0x60100000 0x700000  {    ; load region size_region
+
+  _PSRAM_DATA 0x60000000 FIXED {
+	*(.psram.data*)
+  }
+
+  _PSRAM_CODE +0 FIXED {
+	*(.psram.text*)
+  }
+
+  _PSRAM_RODATA +0 FIXED {
+	*(.psram.rodata*)
+  }
+
+  _PSRAM_BSS +0 UNINIT FIXED {
+	*(.psram.bss*)
+  }
+}
+
+;the range of LPDDR memory in non-secure region must match with the SAU setting at ram_start()
+LR_LPDDR 0x70000000 0x1C00000  {    ; load region size_region
+
+  _LPDDR_DATA 0x70000000 FIXED {
+	*(.lpddr.data*)
+  }
+
+  _LPDDR_CODE +0 FIXED {
+	*(.lpddr.text*)
+
+	*dwc_otg*.o(+RO)
+	*usb.o(+RO)
+	*usb_config_rom.o(+RO)
+	*usbd_vendor.o(+RO)
+  }
+
+  _LPDDR_RODATA +0 FIXED {
+	*(.lpddr.rodata*)
+  }
+
+  _LPDDR_BSS +0 UNINIT FIXED {
+	*(.lpddr.bss*)
+	*usbd_vendor.o(+ZI)
+  }
+}
+
+LR_RAM 0x20100000 0x120000  {    ; load region size_region
+  _RAM_VECTOR 0x20100000 FIXED 0x100 {  ; RW data
+	*.o (.ram_vector_table)
+  }
+
+  _RAM_FUNC_TBL 0x20100900 FIXED 0x100 {
+    ram_start.o(.start.ram.data.a)
+  }
+
+  _RAM_CODE 0x20100A00 FIXED {
+    ram_start.o (.start.ram.sign)
+    .ANY (+RO)
+  }
+  
+  _RAM_DATA +0 FIXED {
+    .ANY (+RW)
+  }
+
+  _RAM_BSS +0 UNINIT FIXED {
+    .ANY (+ZI)
+  }
+
+  _RAM_NC 0x20118000 FIXED 0x8000 {	; Non-cacheable RAM
+	*.o (.non_cache.data*)
+  }
+
+  _RAM_SHARED 0x20140000 FIXED 0x3A000 {
+    ;shared by CPU and Video Encoder, CPU can use it only when Video Encoder is off
+    *.o (.share_ram*)
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "IsLib": "N",
+  "OutLib": "mbed_driver.a",
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+  ],
+  
+  "excludePath": [
+  ],
+
+  "excludeSource": [
+  ]  
+}

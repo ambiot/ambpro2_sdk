@@ -1,0 +1,40 @@
+{
+  "IsLib": "N",
+  "OutLib": "rom_util.a",
+
+  "TargetDep": [
+    "rtl8735b"
+  ],
+  
+  "ChipVersionDep": [
+    "Cut-A",
+    "Cut-B",
+    "Cut-C",
+    "Cut-D"
+  ],
+
+  "BuildModeDep": [
+    "Rom",
+    "All"
+  ],
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+    "-DROM_REGION=1"
+  ],
+  
+  "excludePath": [
+  ],
+
+  "excludeSource": [
+  ],
+
+  "ARMCC-v5": {
+    "CCFlags": [
+      "--gnu"
+	]
+  }
+  
+}

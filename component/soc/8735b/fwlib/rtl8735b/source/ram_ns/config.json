@@ -1,0 +1,65 @@
+{
+  "IsLib": "N",
+  "OutLib": "rtl8735b_hal_ram_ns.a",
+
+  "TargetDep": [
+    "rtl8735b"
+  ],
+
+  "SecureDep": [
+  	"NonSecure",
+  	"Ignore"
+  ],
+  
+  "ChipVersionDep": [
+    "Cut-A",
+    "Cut-B",
+    "Cut-C",
+    "Cut-D"
+  ],
+
+  "BuildModeDep": [
+    "Ram",
+    "Boot",
+    "All"
+  ],
+
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+  ],
+  
+  "excludePath": [
+    "wlan/halmac/halmac_88xx_v1",
+    "wlan/halmac/halmac_88xx/halmac_8195b",
+    "wlan/halmac/halmac_88xx/halmac_8822b",
+    "wlan/halmac/halmac_88xx/halmac_8821c"  
+  ],
+
+  "excludeSource": [
+  ],
+
+  "BuildNonSecureDep": {
+    "excludeSource": [
+    ]
+  },
+
+  "PlatformCfg": {
+    "CONFIG_WLAN_EN": {
+      "0" : {
+	    "Value": 0,			
+		"excludePath": [
+		    "wlan"
+		]
+      }      
+    }
+  },   
+
+  "ARMCC-v5": {
+    "CCFlags": [
+      "--gnu"
+	]
+  }  
+}

@@ -1,0 +1,198 @@
+{
+  "IsLib": "N",
+  "OutLib": "rtl8735b_mbed_hal.a",
+
+  "TargetDep": [
+    "rtl8735b"
+  ],
+
+  "SecureDep": [
+  	"NonSecure",
+  	"Ignore"
+  ],
+
+  "ChipVersionDep": [
+    "Cut-A",
+    "Cut-B",
+    "Cut-C",
+    "Cut-D"
+  ],
+
+  "BuildModeDep": [
+    "Ram",
+    "All"
+  ],
+
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+  ],
+
+  "excludePath": [
+  ],
+
+  "excludeSource": [
+  ],
+
+  "PlatformCfg": {
+    "CONFIG_ADC_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "analogin_api.c"  
+	    ]
+      }
+    },
+    "CONFIG_AUDIO_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "audio_api.c"
+	    ]
+      }
+    },
+    "CONFIG_CRYPTO_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "crypto_api.c"
+	    ]
+      }
+    },
+    "CONFIG_GDMA_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "dma_api.c"
+	    ]
+      }
+    },
+    "CONFIG_ECDSA_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "ecdsa_api.c"
+	    ]
+      }
+    },
+    "CONFIG_SPI_FLASH_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "flash_api.c"
+	    ]
+      }
+    },
+    "CONFIG_SNAND_FLASH_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "snand_api.c"
+	    ]
+      }
+    },
+    "CONFIG_GPIO_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "gpio_api.c",
+		  "gpio_irq_api.c"
+	    ]
+      }
+    },
+    "CONFIG_I2C_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "i2c_api.c"
+	    ]
+      }
+    },
+    "CONFIG_I2S_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "i2s_api.c"
+	    ]
+      }
+    },
+    "CONFIG_PWM_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "pwmout_api.c"
+	    ]
+      }
+    },
+    "CONFIG_RTC_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "rtc_api.c"
+	    ]
+      }
+    },
+    "CONFIG_UART_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "serial_api.c"
+	    ]
+      }
+    },
+    "CONFIG_SGPIO_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "sgpio_api.c"
+	    ]
+      }
+    },
+    "CONFIG_SPORT_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "sport_api.c"
+	    ]
+      }
+    },
+    "CONFIG_SPI_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "spi_api.c"
+	    ]
+      }
+    },
+    "CONFIG_GTIMER_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "timer_api.c",
+		  "us_ticker.c"
+	    ]
+      }
+    },
+    "CONFIG_WDG_EN": {
+      "0" : {
+	    "Value": 0,
+		"excludeSource": [
+		  "wdt_api.c"
+	    ]
+      }
+    }
+  },
+
+  "BuildNonSecureDep": {
+    "excludeSource": [
+    ]
+  },
+
+  "ARMCC-v5": {
+    "CCFlags": [
+      "--gnu"
+	]
+  }
+}

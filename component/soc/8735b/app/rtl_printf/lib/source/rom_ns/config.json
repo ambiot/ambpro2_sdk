@@ -1,0 +1,34 @@
+{
+  "IsLib": "N",
+
+  "BuildModeDep": [
+    "Rom",
+    "All"
+  ],
+
+  "extraIncludes": [
+  ],
+
+  "extraCCFlags": [
+    "-DROM_REGION=1"
+  ],
+  
+  "excludePath": [
+  ],
+
+  "excludeSource": [
+  ],
+
+  "rtl8735b": {
+    "SecureDep": [
+   	  "NonSecure",
+   	  "Ignore"
+    ]
+  },
+  
+  "ARMCC-v5": {
+      "CCFlags": [
+      "--gnu"
+    ]
+  }
+}
