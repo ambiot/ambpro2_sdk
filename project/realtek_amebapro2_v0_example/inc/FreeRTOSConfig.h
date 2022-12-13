@@ -192,4 +192,27 @@ extern void vAssertCalled(uint32_t ulLine, const char *pcFile);
 /* Enable static allocation. */
 #define configSUPPORT_STATIC_ALLOCATION					1
 
+#if defined(ENABLE_AMAZON_COMMON)
+/* Sets the length of the buffers into which logging messages are written - so
+ * also defines the maximum length of each log message. */
+#define configLOGGING_MAX_MESSAGE_LENGTH            512
+
+/* Set to 1 to prepend each log message with a message number, the task name,
+ * and a time stamp. */
+#define configLOGGING_INCLUDE_TIME_AND_TASK_NAME    1
+
+/* Map the FreeRTOS printf() to the logging task printf. */
+/* The function that implements FreeRTOS printf style output, and the macro
+ * that maps the configPRINTF() macros to that function. */
+#define configPRINTF( X )    vLoggingPrintf X
+
+/* Non-format version thread-safe print. */
+#define configPRINT( X )     vLoggingPrint( X )
+
+/* Map the logging task's printf to the board specific output function. */
+#define configPRINT_STRING( X )         printf( X )
+
+#define iotconfigUSE_PORT_SPECIFIC_HOOKS
+#endif /* ENABLE_AMAZON_COMMON */
+
 #endif /* FREERTOS_CONFIG_H */
