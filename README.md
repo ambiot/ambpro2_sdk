@@ -1,5 +1,10 @@
 # AmebaPro2 SDK
 
+AIoT wireless network camera 
+<a href="https://www.amebaiot.com/en/amebapro2/">
+  <img src="https://img.shields.io/badge/Realtek%20IoT-AmebaPro2-blue" valign="middle" alt="test image size" height="15%" width="15%"/>
+</a>  
+
 ### Clone Project
 
 To check out this repository:  
@@ -31,3 +36,9 @@ git clone https://github.com/ambiot/ambpro2_sdk.git
 </a>  
 &nbsp; AmebaPro2 can connect to AWS IoT with the long term support libraries maintained by Amazon.  
 &nbsp; [FreeRTOS demos](https://docs.aws.amazon.com/freertos/latest/userguide/freertos-next-steps.html): coreHTTP, coreMQTT, Over-the-air updates(OTA), AWS IoT Device Shadow...  
+
+:bulb: **Amazon Kinesis Video Streams - video cloud storage and analytics**
+<a href="https://github.com/ambiot/ambpro2_sdk/blob/main/doc/KVS_producer_example_README.md">
+  <img src="https://img.shields.io/badge/-Getting%20Started-green" valign="middle" height=25px width=120px/>
+</a>  
+&nbsp; [What Is Amazon Kinesis Video Streams?](https://aws.amazon.com/kinesis/video-streams)  
