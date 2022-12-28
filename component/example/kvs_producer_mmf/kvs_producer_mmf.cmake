@@ -30,4 +30,7 @@ list(
     
     ${sdk_root}/component/example/kvs_producer_mmf/module_kvs_producer.c
     ${sdk_root}/component/example/kvs_producer_mmf/example_kvs_producer_mmf.c
+    ${sdk_root}/component/example/kvs_producer_mmf/example_kvs_producer_with_object_detection.c
+
+    ${prj_root}/src/mmfv2_video_example/nn_osd_draw.c
 )

@@ -42,3 +42,11 @@ If using windows, you can build the project by WSL(Windows Subsystem for Linux)
     <img src="https://img.shields.io/badge/-Getting%20Started-green" valign="middle" height=25px width=120px/>
   </a>  
   - [What Is Amazon Kinesis Video Streams?](https://aws.amazon.com/kinesis/video-streams)  
+
+## Scenario integration
+
+- :bulb: **Edge AI (YOLOv4-tiny) + KVS cloud storage**
+  <a href="https://github.com/ambiot/ambpro2_sdk/blob/main/doc/KVS_producer_with_object_detection_example_README.md">
+    <img src="https://img.shields.io/badge/-Getting%20Started-green" valign="middle" height=25px width=120px/>
+  </a>  
+  - stream a 30s video to KVS cloud if a person or car is detected by edge AI
