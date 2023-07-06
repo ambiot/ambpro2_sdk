@@ -340,8 +340,8 @@ add_custom_command(TARGET ${app} POST_BUILD
 	COMMAND ${CMAKE_NM} $<TARGET_FILE:${app}> | sort > ${app}.nm.map
 	COMMAND ${CMAKE_OBJEDUMP} -d $<TARGET_FILE:${app}> > ${app}.asm
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${app}> ${app}.axf
-	COMMAND ${CMAKE_OBJCOPY} -j .bluetooth_trace.text -Obinary ${app}.axf APP.trace
-	COMMAND ${CMAKE_OBJCOPY} -R .bluetooth_trace.text ${app}.axf 
+	#COMMAND ${CMAKE_OBJCOPY} -j .bluetooth_trace.text -Obinary ${app}.axf APP.trace
+	#COMMAND ${CMAKE_OBJCOPY} -R .bluetooth_trace.text ${app}.axf 
 
 	#COMMAND [ -d output ] || mkdir output
 	COMMAND ${CMAKE_COMMAND} -E remove_directory output && ${CMAKE_COMMAND} -E make_directory  output
@@ -349,7 +349,7 @@ add_custom_command(TARGET ${app} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.asm output
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.map output 
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.axf output
-	COMMAND ${CMAKE_COMMAND} -E copy APP.trace output 
+	#COMMAND ${CMAKE_COMMAND} -E copy APP.trace output 
 
 	COMMAND ${PLAT_COPY} *.a output
 )
