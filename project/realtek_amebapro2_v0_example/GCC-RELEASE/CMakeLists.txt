@@ -45,7 +45,7 @@ if(BUILD_TZ)
 	set(isp_iq application/firmware_isp_iq.bin)
 	set(app_dep application.s application.ns)
 	
-	set(bttrace application/APP.trace)
+	#set(bttrace application/APP.trace)
 	add_subdirectory (application)
 else()
 	if(BUILD_WLANMP)
@@ -57,7 +57,7 @@ else()
 	set(isp_iq application/firmware_isp_iq.bin)
 	set(app_dep application.ntz)
 	
-	set(bttrace application/APP.trace)
+	#set(bttrace application/APP.trace)
 	add_subdirectory (application)
 endif()
 
@@ -97,7 +97,7 @@ add_custom_target(
 	COMMAND ${CMAKE_COMMAND} -E copy ${fw} ./firmware.bin
 	COMMAND ${CMAKE_COMMAND} -E copy ${isp_iq} ./firmware_isp_iq.bin
 
-	COMMAND ${CMAKE_COMMAND} -E copy ${bttrace} ./APP.trace
+	#COMMAND ${CMAKE_COMMAND} -E copy ${bttrace} ./APP.trace
 	
 	DEPENDS ${boot_dep}
 	DEPENDS ${app_dep}
@@ -212,7 +212,7 @@ add_custom_target(
 	COMMAND ${CMAKE_COMMAND} -E copy ${fw} ./firmware.bin
 	COMMAND ${ELF2BIN} combine ${target}.bin PTAB=partition.bin,BOOT=boot.bin,FW1=firmware.bin,PT_ISP_IQ=firmware_isp_iq.bin
 	
-	COMMAND ${CMAKE_COMMAND} -E copy ${bttrace} ./APP.trace
+	#COMMAND ${CMAKE_COMMAND} -E copy ${bttrace} ./APP.trace
 	
 	DEPENDS ${boot_dep}
 	DEPENDS ${app_dep}
