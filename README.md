@@ -23,6 +23,10 @@ export PATH=$PATH:<AmebaPro2_SDK>/tools/asdk-10.3.0/linux/newlib/bin
 ```
 If using windows, you can build the project by WSL(Windows Subsystem for Linux)
 
+## Application note
+
+- [HW Description](https://github.com/ambiot/ambpro2_sdk/blob/main/doc/ApplicationNote.HW_Description.en.md)  
+
 ## Demo quick start
 
 - :bulb: **Edge AI - object detection on AmebaPro2 (YOLOv4-tiny)**
