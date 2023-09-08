@@ -26,7 +26,8 @@ If using windows, you can build the project by WSL(Windows Subsystem for Linux)
 ## Application note
 
 - :books: [HW Description](https://github.com/ambiot/ambpro2_sdk/blob/main/doc/ApplicationNote.HW_Description.en.md) :open_book:
-
+- :books: [Build Environment](https://github.com/ambiot/ambpro2_sdk/blob/main/doc/ApplicationNote.Build_Environment.en.md) :open_book:
+- :books: [Image Download](https://github.com/ambiot/ambpro2_sdk/blob/main/doc/ApplicationNote.Image_Download.en.md) :open_book:
 - :books: [ISP SW Dev Guide](https://github.com/ambiot/ambpro2_sdk/blob/main/doc/ApplicationNote.ISP_SW_Dev_Guide.en.md) :open_book:
 
 ## Demo quick start
