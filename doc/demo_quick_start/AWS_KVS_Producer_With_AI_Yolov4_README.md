@@ -13,7 +13,7 @@ This demo will demonstrate how to stream a 30s video to KVS cloud if a person or
     git clone -b v1.0.1 --recursive https://github.com/aws-samples/amazon-kinesis-video-streams-producer-embedded-c.git producer
     ```
 
-## Congiure the example
+## Configure the example
 - configure AWS key, channel name and AWS region in `component/example/kvs_producer_mmf/sample_config.h`
     ```
     /* KVS general configuration */
