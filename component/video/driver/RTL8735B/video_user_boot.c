@@ -15,17 +15,27 @@
 #include "video_boot.h"
 #include "hal_snand.h"
 #include "diag.h"
+#include "hal_spic.h"
+#include "hal_flash.h"
+#include "sensor.h"
+//#define USE_2K_SENSOR
 #define CHANGE_PARAMETER
+//#define ROI_TEST
+//#define PRIVATE_TEST
+//#define META_DATA_TEST
+//#define ISP_CONTROL_TEST
 video_boot_stream_t video_boot_stream = {
 	.video_params[STREAM_V1].stream_id = STREAM_V1,
 	.video_params[STREAM_V1].type = CODEC_H264,
 	.video_params[STREAM_V1].resolution = 0,
-	.video_params[STREAM_V1].width = 1920,
-	.video_params[STREAM_V1].height = 1080,
+	.video_params[STREAM_V1].width  = sensor_params[USE_SENSOR].sensor_width,
+	.video_params[STREAM_V1].height = sensor_params[USE_SENSOR].sensor_height,
 	.video_params[STREAM_V1].bps = 2 * 1024 * 1024,
 	.video_params[STREAM_V1].fps = 15,
 	.video_params[STREAM_V1].gop = 15,
 	.video_params[STREAM_V1].rc_mode = 2,
+	.video_params[STREAM_V1].minQp = 25,
+	.video_params[STREAM_V1].maxQp = 48,
 	.video_params[STREAM_V1].jpeg_qlevel = 0,
 	.video_params[STREAM_V1].rotation = 0,
 	.video_params[STREAM_V1].out_buf_size = V1_ENC_BUF_SIZE,
@@ -35,6 +45,10 @@ video_boot_stream_t video_boot_stream = {
 	.video_snapshot[STREAM_V1] = 0,
 	.video_drop_frame[STREAM_V1] = 0,
 	.video_params[STREAM_V1].fcs = 1,//Enable the fcs for channel 1
+	.auto_rate_control[STREAM_V1].sampling_time = sensor_params[USE_SENSOR].sensor_fps,
+	.auto_rate_control[STREAM_V1].maximun_bitrate = 2 * 1024 * 1024 * 1.2,
+	.auto_rate_control[STREAM_V1].minimum_bitrate = 2 * 1024 * 1024 * 0.8,
+	.auto_rate_control[STREAM_V1].target_bitrate = 2 * 1024 * 1024,
 	.video_params[STREAM_V2].stream_id = STREAM_V2,
 	.video_params[STREAM_V2].type = CODEC_H264,
 	.video_params[STREAM_V2].resolution = 0,
@@ -44,6 +58,8 @@ video_boot_stream_t video_boot_stream = {
 	.video_params[STREAM_V2].fps = 15,
 	.video_params[STREAM_V2].gop = 15,
 	.video_params[STREAM_V2].rc_mode = 0,
+	.video_params[STREAM_V2].minQp = 25,
+	.video_params[STREAM_V2].maxQp = 48,
 	.video_params[STREAM_V2].jpeg_qlevel = 0,
 	.video_params[STREAM_V2].rotation = 0,
 	.video_params[STREAM_V2].out_buf_size = V2_ENC_BUF_SIZE,
@@ -53,6 +69,10 @@ video_boot_stream_t video_boot_stream = {
 	.video_params[STREAM_V2].fcs = 0,
 	.video_snapshot[STREAM_V2] = 0,
 	.video_drop_frame[STREAM_V2] = 0,
+	.auto_rate_control[STREAM_V2].sampling_time = 0,
+	.auto_rate_control[STREAM_V2].maximun_bitrate = 0,
+	.auto_rate_control[STREAM_V2].minimum_bitrate = 0,
+	.auto_rate_control[STREAM_V2].target_bitrate = 0,
 	.video_params[STREAM_V3].stream_id = STREAM_V3,
 	.video_params[STREAM_V3].type = CODEC_H264,
 	.video_params[STREAM_V3].resolution = 0,
@@ -62,6 +82,8 @@ video_boot_stream_t video_boot_stream = {
 	.video_params[STREAM_V3].fps = 0,
 	.video_params[STREAM_V3].gop = 0,
 	.video_params[STREAM_V3].rc_mode = 0,
+	.video_params[STREAM_V3].minQp = 0,
+	.video_params[STREAM_V3].maxQp = 0,
 	.video_params[STREAM_V3].jpeg_qlevel = 0,
 	.video_params[STREAM_V3].rotation = 0,
 	.video_params[STREAM_V3].out_buf_size = V3_ENC_BUF_SIZE,
@@ -80,6 +102,8 @@ video_boot_stream_t video_boot_stream = {
 	.video_params[STREAM_V4].fps = 0,
 	.video_params[STREAM_V4].gop = 0,
 	.video_params[STREAM_V4].rc_mode = 0,
+	.video_params[STREAM_V4].minQp = 0,
+	.video_params[STREAM_V4].maxQp = 0,
 	.video_params[STREAM_V4].jpeg_qlevel = 0,
 	.video_params[STREAM_V4].rotation = 0,
 	.video_params[STREAM_V4].out_buf_size = 0,
@@ -139,11 +163,13 @@ video_boot_stream_t video_boot_stream = {
 	.fcs_isp_awb_init_rgain = 0,
 	.fcs_isp_awb_init_bgain = 0,
 	.fcs_isp_init_daynight_mode = 0,
+	.fcs_isp_gray_mode = 0,
 #endif
 	.voe_heap_size = 0,
 	.voe_heap_addr = 0,
-	.isp_info.sensor_width = 1920,
-	.isp_info.sensor_height = 1080,
+	.isp_info.sensor_width = sensor_params[USE_SENSOR].sensor_width,
+	.isp_info.sensor_height = sensor_params[USE_SENSOR].sensor_height,
+	.isp_info.sensor_fps = sensor_params[USE_SENSOR].sensor_fps,
 	.isp_info.md_enable = 1,
 	.isp_info.hdr_enable = 1,
 	.isp_info.osd_enable = 1,
@@ -154,6 +180,7 @@ video_boot_stream_t video_boot_stream = {
 };
 //#define FCS_PARTITION //Use the FCS data to change the parameter from bootloader.If mark the marco, it will use the FTL config.
 extern hal_snafc_adaptor_t boot_snafc_adpt;
+extern hal_spic_adaptor_t _hal_spic_adaptor;
 uint8_t snand_data[2112] __attribute__((aligned(32)));
 #define NAND_FLASH_FCS 0x7080000 //900*128*1024 It msut be first page for the block
 #define NAND_PAGE_SIZE 2048
@@ -206,8 +233,6 @@ int boot_get_fcs_remap_block(unsigned int address, unsigned int *remap_value)
 	}
 	return ret;
 }
-
-extern uint8_t hal_sys_get_boot_select(void);
 int boot_read_flash_data(unsigned int address, unsigned char *buf, int length)
 {
 	int ret = 0;
@@ -232,16 +257,40 @@ int boot_read_flash_data(unsigned int address, unsigned char *buf, int length)
 			memcpy(buf, snand_data, length);
 		}
 	} else {
-		dcache_invalidate_by_addr((uint32_t *)NOR_FLASH_BASE + address, 2048);
-		memcpy(buf, (void *)(NOR_FLASH_BASE + address), length);
+		dcache_invalidate_by_addr((uint32_t *)(NOR_FLASH_BASE + address), length);
+		unsigned char flash_id = _hal_spic_adaptor.flash_id[2];
+		if (flash_id < FLASH_ID_4ADDR) {
+			hal_flash_stream_read(&_hal_spic_adaptor, length, address, buf);
+		} else {
+			memcpy(buf, (void *)(NOR_FLASH_BASE + address), length);
+		}
+		//hal_flash_stream_read(&_hal_spic_adaptor, length, address, buf);
+
 	}
 	return ret;
 }
+static void set_fcs_boottime_information(void)
+{
+	video_boot_stream.fcs_start_time = hal_read_cur_time() / 1000; // get the time from booloader to fcs OK
+	(* ((volatile uint32_t *) 0xe000edfc)) |= (1 << 24);    // DEMCR, bit 24 TRCENA
+	(* ((volatile uint32_t *) 0xe0001004)) = 0;             // DWT_CYCCNT
+	(* ((volatile uint32_t *) 0xe0001000)) |= 1;            // DWT_CTRL, bit 0 CYCCNTENA
+}
+
+int user_disable_fcs(void)
+{
+	return 0;//1:disable fcs, 0:Don't care
+}
+
 void user_boot_config_init(void *parm)
 {
 	//Insert your code into here
 	//dbg_printf("user_boot_config_init\r\n");
 	video_boot_stream_t *fcs_data = NULL;
+
+	// when use fcs mode, we need this api to keep the fcs boot time information
+	set_fcs_boottime_information();
+
 #ifdef FCS_PARTITION
 	unsigned char *boot_data = NULL;
 	boot_data = (unsigned char *)parm;
@@ -275,7 +324,9 @@ void user_boot_config_init(void *parm)
 			fcs_data = (video_boot_stream_t *)(boot_data + 8);
 			if ((video_boot_stream.isp_info.sensor_width == fcs_data->isp_info.sensor_width) &&
 				(video_boot_stream.isp_info.sensor_height == fcs_data->isp_info.sensor_height)) {
+				uint32_t fcs_start_time = video_boot_stream.fcs_start_time;
 				memcpy(&video_boot_stream, fcs_data, sizeof(video_boot_stream_t));
+				video_boot_stream.fcs_start_time = fcs_start_time;
 				//dbg_printf("Update parameter\r\n");
 			}
 		} else {
@@ -286,14 +337,21 @@ void user_boot_config_init(void *parm)
 	}
 #ifdef USE_FCS_LOOKUPTABLE_SAMPLE
 	int i;
-	int ALS_value = 20000; //Get From HW ADC
+	int ALS_value = 20000; //Get From HW ADC, user can modify it for difference init value testing
 	for (i = 1; i <= video_boot_stream.fcs_lookup_count; i++) {
 		if (ALS_value > video_boot_stream.fcs_als_thr[i]) {
 			video_boot_stream.fcs_isp_ae_init_exposure = video_boot_stream.fcs_isp_ae_table_exposure[i];
 			video_boot_stream.fcs_isp_ae_init_gain = video_boot_stream.fcs_isp_ae_table_gain[i];
 			video_boot_stream.fcs_isp_awb_init_rgain =	video_boot_stream.fcs_isp_awb_table_rgain[i];
 			video_boot_stream.fcs_isp_awb_init_bgain =	video_boot_stream.fcs_isp_awb_table_bgain[i];
-			video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[i];
+			//0 = RGB mode (with color), 1=IR mode (w/o color), 2 = Spot light mode (with color)
+			if (video_boot_stream.fcs_isp_mode_table[i] == 2) {
+				video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[i];
+				video_boot_stream.fcs_isp_gray_mode = 0;
+			} else {
+				video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[i];
+				video_boot_stream.fcs_isp_gray_mode = video_boot_stream.fcs_isp_mode_table[i];
+			}
 			break;
 		}
 	}
@@ -302,7 +360,66 @@ void user_boot_config_init(void *parm)
 		video_boot_stream.fcs_isp_ae_init_gain = video_boot_stream.fcs_isp_ae_table_gain[0];
 		video_boot_stream.fcs_isp_awb_init_rgain = video_boot_stream.fcs_isp_awb_table_rgain[0];
 		video_boot_stream.fcs_isp_awb_init_bgain = video_boot_stream.fcs_isp_awb_table_bgain[0];
-		video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[0];
+		//0 = RGB mode (with color), 1=IR mode (w/o color), 2 = Spot light mode (with color)
+		if (video_boot_stream.fcs_isp_mode_table[i] == 2) {
+			video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[0];
+			video_boot_stream.fcs_isp_gray_mode = 0;
+		} else {
+			video_boot_stream.fcs_isp_init_daynight_mode = video_boot_stream.fcs_isp_mode_table[0];
+			video_boot_stream.fcs_isp_gray_mode = video_boot_stream.fcs_isp_mode_table[0];
+		}
 	}
+#endif
+
+#ifdef ROI_TEST
+	video_boot_stream.video_params[STREAM_V1].use_roi = 1;//Enable the ROI function
+	// (xmax - xmin) should be larger than v1 & v2 width
+	// (ymax - ymin) should be larger than v1 & v2 height
+	video_boot_stream.video_params[STREAM_V1].roi.xmin = 0;
+	video_boot_stream.video_params[STREAM_V1].roi.ymin = 0;
+	video_boot_stream.video_params[STREAM_V1].roi.xmax = video_boot_stream.isp_info.sensor_width;
+	video_boot_stream.video_params[STREAM_V1].roi.ymax = video_boot_stream.isp_info.sensor_height;
+#endif
+
+#ifdef PRIVATE_TEST
+	video_boot_stream.private_mask.enable = 1;
+	video_boot_stream.private_mask.color = 0xff0080;
+	//Rect 0
+	video_boot_stream.private_mask.en[PRIVATE_MASK_RECT_ID_0] = 1;
+	video_boot_stream.private_mask.start_x[PRIVATE_MASK_RECT_ID_0] = 0;
+	video_boot_stream.private_mask.start_y[PRIVATE_MASK_RECT_ID_0] = 0;
+	video_boot_stream.private_mask.w[PRIVATE_MASK_RECT_ID_0] = 320;
+	video_boot_stream.private_mask.h[PRIVATE_MASK_RECT_ID_0] = 300;
+	//Rect 1
+	video_boot_stream.private_mask.en[PRIVATE_MASK_RECT_ID_1] = 1;
+	video_boot_stream.private_mask.start_x[PRIVATE_MASK_RECT_ID_1] = 100;
+	video_boot_stream.private_mask.start_y[PRIVATE_MASK_RECT_ID_1] = 100;
+	video_boot_stream.private_mask.w[PRIVATE_MASK_RECT_ID_1] = 320;
+	video_boot_stream.private_mask.h[PRIVATE_MASK_RECT_ID_1] = 300;
+	//Grid
+	video_boot_stream.private_mask.en[PRIVATE_MASK_GRID] = 1;
+	video_boot_stream.private_mask.start_x[PRIVATE_MASK_GRID] = 320;
+	video_boot_stream.private_mask.start_y[PRIVATE_MASK_GRID] = 300;
+	video_boot_stream.private_mask.w[PRIVATE_MASK_GRID] = 320;
+	video_boot_stream.private_mask.h[PRIVATE_MASK_GRID] = 300;
+	video_boot_stream.private_mask.cols = 8;
+	video_boot_stream.private_mask.rows = 4;
+	memset(video_boot_stream.private_mask.bitmap, 0xaa, sizeof(video_boot_stream.private_mask.bitmap));
+#endif
+#ifdef META_DATA_TEST
+	video_boot_stream.meta_enable = 1;
+	video_boot_stream.meta_size = VIDEO_BOOT_META_USER_SIZE;
+#endif
+#ifdef ISP_CONTROL_TEST
+	//If you don't want to setup the parameters, you can setup the 0xffff to skip the procedure.For example video_boot_stream.init_isp_items.init_brightness = 0xffff;
+	video_boot_stream.init_isp_items.enable = 1;
+	video_boot_stream.init_isp_items.init_brightness = 10;    //Default:0
+	video_boot_stream.init_isp_items.init_contrast = 100;     //Default:50
+	video_boot_stream.init_isp_items.init_flicker = 2;        //Default:1
+	video_boot_stream.init_isp_items.init_hdr_mode = 0;       //Default:0
+	video_boot_stream.init_isp_items.init_mirrorflip = 0xf3;  //Default:0xf0
+	video_boot_stream.init_isp_items.init_saturation = 75;    //Default:50
+	video_boot_stream.init_isp_items.init_wdr_level = 80;     //Default:50
+	video_boot_stream.init_isp_items.init_wdr_mode = 1;       //Default:0
 #endif
 }

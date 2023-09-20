@@ -28,6 +28,8 @@ list(
 	APPEND app_example_sources
     
     ${EXAMPLE_SOURCE_PATH}
+	../../../../component/video/osd2/isp_osd_example.c
+	../../../../component/video/osd2/osd_render.c
 )
 
 

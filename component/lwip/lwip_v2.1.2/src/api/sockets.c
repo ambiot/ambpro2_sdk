@@ -68,6 +68,19 @@
 #include LWIP_HOOK_FILENAME
 #endif
 
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+#include <hal_cache.h>
+
+__attribute__((section (".retention.data"))) struct tcp_pcb retention_tcp_pcb __attribute__((aligned(32)));
+__attribute__((section (".retention.data"))) uint8_t retention_have_new_tcp_pcb __attribute__((aligned(32))) = 0;
+static uint32_t tcp_resume_seqno = 0;
+static uint32_t tcp_resume_ackno = 0;
+static uint8_t *tcp_resume_packet = NULL;
+static uint32_t tcp_resume_packet_len = 0;
+#endif
+/* Added by Realtek end */
+
 /* If the netconn API is not required publicly, then we include the necessary
    files here to get the implementation */
 #if !LWIP_NETCONN
@@ -4323,6 +4336,191 @@ int lwip_gettcpstatus(int s, uint32_t *seqno, uint32_t *ackno, uint16_t *wnd)
 
   return 0;
 }
+
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+int lwip_retain_tcp(int s)
+{
+  struct lwip_sock *sock;
+  sock = get_socket(s);
+  if (!sock) {
+    printf("\n\r ERROR: get_socket(%d) \n\r", s);
+    return -1;
+  }
+
+  if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) == NETCONN_TCP) {
+    struct tcp_pcb *pcb = sock->conn->pcb.tcp;
+
+    memcpy((uint8_t *) &retention_tcp_pcb, pcb, sizeof(struct tcp_pcb));
+    dcache_clean_invalidate_by_addr((uint32_t *) &retention_tcp_pcb, sizeof(struct tcp_pcb));
+    retention_have_new_tcp_pcb = 1;
+    dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_tcp_pcb, sizeof(retention_have_new_tcp_pcb));
+  }
+  else {
+    return -1;
+  }
+
+  return 0;
+}
+
+int lwip_resume_tcp(int s)
+{
+  struct lwip_sock *sock;
+  sock = get_socket(s);
+  if (!sock) {
+    printf("\n\r ERROR: get_socket(%d) \n\r", s);
+    return -1;
+  }
+
+  if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) == NETCONN_TCP) {
+    struct tcp_pcb *pcb = sock->conn->pcb.tcp;
+    struct tcp_pcb *pcb_backup = &retention_tcp_pcb;
+    uint8_t use_backup = ((tcp_resume_seqno == 0) && (tcp_resume_ackno == 0)) ? 1 : 0;
+
+    pcb->local_ip = pcb_backup->local_ip;
+    pcb->remote_ip = pcb_backup->remote_ip;
+    pcb->netif_idx = pcb_backup->netif_idx;
+    pcb->so_options = pcb_backup->so_options;
+    pcb->tos = pcb_backup->tos;
+    pcb->ttl = pcb_backup->ttl;
+    // *next
+    // *callback_arg
+    pcb->state = pcb_backup->state;
+    pcb->prio = pcb_backup->prio;
+    pcb->local_port = pcb_backup->local_port;
+    pcb->remote_port = pcb_backup->remote_port;
+    pcb->flags = pcb_backup->flags;
+    // polltmr
+    pcb->pollinterval = pcb_backup->pollinterval;
+    // last_timer
+    // tmr
+    pcb->rcv_nxt = (use_backup) ? (pcb_backup->rcv_nxt) : tcp_resume_ackno;
+    pcb->rcv_wnd = pcb_backup->rcv_wnd;
+    pcb->rcv_ann_wnd = pcb_backup->rcv_ann_wnd;
+    pcb->rcv_ann_right_edge = pcb_backup->rcv_ann_right_edge;
+    // rtime
+    pcb->mss = pcb_backup->mss;
+    // rttest
+    pcb->rtseq = (use_backup) ? (pcb_backup->rtseq) : (tcp_resume_seqno - 1);
+    // sa
+    // sv
+    // rto
+    // nrtx
+    // dupacks
+    pcb->lastack = (use_backup) ? (pcb_backup->lastack) : tcp_resume_seqno;
+    pcb->cwnd = pcb_backup->cwnd;
+    // ssthresh
+    // rto_end
+    pcb->snd_nxt = (use_backup) ? (pcb_backup->snd_nxt) : tcp_resume_seqno;
+    pcb->snd_wl1 = (use_backup) ? (pcb_backup->snd_wl1) : tcp_resume_ackno;
+    pcb->snd_wl2 = (use_backup) ? (pcb_backup->snd_wl2) : tcp_resume_seqno;
+    pcb->snd_lbb = (use_backup) ? (pcb_backup->snd_lbb) : tcp_resume_seqno;
+    pcb->snd_wnd = pcb_backup->snd_wnd;
+    pcb->snd_wnd_max = pcb_backup->snd_wnd_max;
+    // snd_buf
+    // snd_queuelen
+    // unsent_oversize
+    // bytes_acked
+    // *unsent
+    // *unacked
+    // *ooseq
+    // *refused_data
+    // *listener
+    // sent
+    // recv
+    // connected
+    // poll
+    // errf
+    pcb->keep_idle = pcb_backup->keep_idle;
+    pcb->keep_intvl = pcb_backup->keep_intvl;
+    pcb->keep_cnt = pcb_backup->keep_cnt;
+    // persist_cnt
+    // persist_backoff
+    // persist_probe
+    // keep_cnt_sent
+    pcb->snd_scale = pcb_backup->snd_scale;
+    pcb->rcv_scale = pcb_backup->rcv_scale;
+
+    sock->sendevent = 1;
+
+    extern void tcp_reg_active(struct tcp_pcb *pcb);
+    tcp_reg_active(pcb);
+
+    // clear tcp resume port to allow packet incoming after tcp resume done
+    extern void tcp_set_resume_port(uint16_t port);
+    tcp_set_resume_port(0);
+
+    retention_have_new_tcp_pcb = 0;
+    dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_tcp_pcb, sizeof(retention_have_new_tcp_pcb));
+
+    if (tcp_resume_packet && tcp_resume_packet_len) {
+      struct pbuf *p = pbuf_alloc(PBUF_RAW, tcp_resume_packet_len, PBUF_POOL);
+      if (p == NULL) {
+        printf("\n\r ERROR: pbuf_alloc \n\r");
+      }
+      else {
+        struct pbuf *q = p;
+        uint32_t len = 0;
+        while ((q != NULL) && (len < tcp_resume_packet_len)) {
+          memcpy(q->payload, tcp_resume_packet + len, q->len);
+          len += q->len;
+          q = q->next;
+        }
+        extern struct netif xnetif[];
+        struct netif *netif = &xnetif[0];
+        if (p->if_idx == NETIF_NO_INDEX) {
+          p->if_idx = netif_get_index(netif);
+        }
+        if (ERR_OK != netif->input(p, netif)) {
+          printf("\n\r ERROR: netif input \n\r");
+          pbuf_free(p);
+        }
+      }
+
+      free(tcp_resume_packet);
+    }
+  }
+  else {
+    return -1;
+  }
+
+  return 0;
+}
+
+int lwip_set_tcp_resume(uint32_t seqno, uint32_t ackno)
+{
+  tcp_resume_seqno = seqno;
+  tcp_resume_ackno = ackno;
+  return 0;
+}
+
+uint8_t lwip_check_tcp_resume(void)
+{
+  return retention_have_new_tcp_pcb;
+}
+
+int lwip_set_resume_packet(uint8_t *packet, uint32_t packet_len)
+{
+  if ((packet == NULL) || (packet_len == 0)) {
+    return -1;
+  }
+
+  tcp_resume_packet = (uint8_t *) malloc(packet_len);
+  if (tcp_resume_packet) {
+    tcp_resume_packet_len = packet_len;
+    memcpy(tcp_resume_packet, packet, packet_len);
+  }
+  else {
+    printf("\n\r ERROR: malloc \n\r");
+    return -1;
+  }
+
+  return 0;
+}
+void lwip_recover_resume_keepalive(void)
+{
+  retention_tcp_pcb.so_options |= SOF_KEEPALIVE;
+}
+#endif // defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
 /**************************************************************
 *                           Added  by Realtek        end                    *
 **************************************************************/

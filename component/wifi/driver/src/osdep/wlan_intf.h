@@ -74,6 +74,9 @@ int rltk_wlan_get_wifi_mac_address(__u8 *mac);
 int rltk_wlan_set_bt_mac_address(__u8 *bt_mac);
 int rltk_wlan_get_bt_mac_address(__u8 *mac);
 int rltk_wlan_get_ap_dtim(__u8 *dtim_period);
+int rltk_wlan_set_ra_start_rate(__u8 rate);
+int rltk_wlan_set_ra_max_rate(__u8 rate);
+int rltk_wlan_set_ra_mask_en(__u8 enable);
 
 void rltk_psk_info_set(struct psk_info *psk_data);
 void rltk_psk_info_get(struct psk_info *psk_data);
@@ -112,6 +115,9 @@ void rltk_wlan_set_no_beacon_timeout(unsigned char timeout_sec);
 
 int rltk_wlan_csi_config(rtw_csi_action_parm_t *act_param);
 int rltk_wlan_csi_report(__u32 buf_len, __u8 *csi_buf, __u32 *len, rtw_csi_header_t *csi_hdr);
+void rltk_wlan_scan_time(unsigned short active_to, unsigned short passive_to, unsigned short home_to, unsigned char probe_cnt);
+void rltk_wlan_set_rts(unsigned char enable, unsigned int rts_threshold);
+int rltk_wlan_set_retry_limit(unsigned char short_retry, unsigned char long_retry);
 
 //add temporarily
 extern int rtw_wx_get_essid(unsigned char wlan_idx, __u8 *ssid);

@@ -13,28 +13,40 @@
 /**
 * User data for common flash usage
 */
-#define FAST_RECONNECT_DATA		0xF00000 // 4KB		Using flt and NAND block 120
-#define BT_FTL_BKUP_ADDR		(0xF00000 + 0x1000) // 12KB
-#define SECURE_STORAGE_BASS		(0xF00000 + 0x4000) // 4KB
-#define AWSIOT_PKCS11_DATA		(0xF00000 + 0x5000) // 16KB
-#define AWSIOT_OTA_STATUS		(0xF00000 + 0x9000) // 12KB
-#define ISP_FW_LOCATION		    (0xF00000 + 0xC000) //Store the ISP index
-#define NOR_FLASH_FCS           (0xF00000 + 0xD000) //Store the FCS data
+#define USER_DATA_BASE          0xF00000
+#define FAST_RECONNECT_DATA		USER_DATA_BASE // 4KB		Using flt and NAND block 120
+#define AWSIOT_PKCS11_DATA		(USER_DATA_BASE + 0x01000) // 16KB
+#define AWSIOT_OTA_STATUS		(USER_DATA_BASE + 0x05000) // 4KB
+#define FACE_FEATURE_DATA		(USER_DATA_BASE + 0x06000) /*!< FACE data begin address, default size used is 24KB (can be adjusted based on user requirement)*/
+#define ISP_FW_LOCATION		    (USER_DATA_BASE + 0x0C000) //Store the ISP index
+#define NOR_FLASH_FCS           (USER_DATA_BASE + 0x0D000) //Store the FCS data
+#define TUNING_IQ_FW            (USER_DATA_BASE + 0x10000) //Store the Tuning IQ data(max size: 256K, 0xF10000~0xF50000)
+#define CALI_IQ_FW              (USER_DATA_BASE + 0x60000) //Store the mp calibration IQ data(max size: 16K, 0xF60000~0xF64000)
 #define NAND_APP_BASE			0x4000000 /*NAND FLASH FILESYSTEM begin address It need to alignment block size, the default is 512 BLOCK*/
-#define FLASH_APP_BASE			0xE00000
+#define FLASH_APP_BASE			0xE00000  //TODO: configure flash file system size here
 #define NAND_FLASH_FCS          0x7080000 //900*128*1024
 
 /**
  * For AT cmd Log service configurations
  */
+#define SUPPORT_LOG_SERVICE	        1
+#define SUPPORT_UART_LOG_SERVICE	0 // For UART Module AT command //
 // For For AT cmd Log service //
+#if SUPPORT_LOG_SERVICE
 #define LOG_SERVICE_BUFLEN              100 //can't larger than UART_LOG_CMD_BUFLEN(127)
 #define CONFIG_LOG_SERVICE_LOCK		    0
 #define CONFIG_ATCMD_MP			        0   //support MP AT command
-#define CONFIG_ISP						0   //support ISP AT command
+#define CONFIG_ISP						1   //support ISP AT command
 #define CONFIG_TUNING					0   //support IQ Tuning
 #define CONFIG_FTL						0   //support FTL AT command
 #define USE_MODE                        1   //for test
+// For UART Module AT command //
+#elif SUPPORT_UART_LOG_SERVICE
+#define CONFIG_OTA_UPDATE		        1
+#define CONFIG_TRANSPORT				1
+#define LOG_SERVICE_BUFLEN				1600
+#define CONFIG_LOG_SERVICE_LOCK
+#endif
 
 /**
  * For FreeRTOS tickless configurations
@@ -52,13 +64,22 @@
 #define CONFIG_INIT_NET		1 //init lwip layer when start up
 #define CONFIG_ENABLE_AP_POLLING_CLIENT_ALIVE 0 // on or off AP POLLING CLIENT
 
+//on/off relative commands in log service
+
 // this two must be enabled when SUPPORT_UART_LOG_SERVICE is on
+#define CONFIG_OTA_UPDATE	    0
 #define CONFIG_TRANSPORT	    0//on or off the at command for transport socket
 
 #define CONFIG_SSL_CLIENT	    0
 #define CONFIG_BSD_TCP		    0//NOTE : Enable CONFIG_BSD_TCP will increase about 11KB code size
 #define CONFIG_AIRKISS		    0//on or off tencent airkiss
 #define CONFIG_UART_SOCKET	    0
+#define CONFIG_JD_SMART		    0//on or off for jdsmart
+#define CONFIG_JOYLINK		    0//on or off for jdsmart2.0
+#define CONFIG_QQ_LINK		    0//on or off for qqlink
+#define CONFIG_AIRKISS_CLOUD	0//on or off for weixin hardware cloud
+#define CONFIG_UART_YMODEM	    0//support uart ymodem upgrade or not
+#define CONFIG_ALINK		    0//on or off for alibaba alink
 
 #define CONFIG_VIDEO_APPLICATION 1	// make lwip use large buffer
 
@@ -86,7 +107,14 @@
 #define AUTO_RECONNECT_INTERVAL	5 // in sec
 
 /* For SSL/TLS */
+#define CONFIG_USE_POLARSSL     0 //polarssl is no longer suppported for AmebaZ2
 #define CONFIG_USE_MBEDTLS      1
+#if ((CONFIG_USE_POLARSSL == 0) && (CONFIG_USE_MBEDTLS == 0)) || ((CONFIG_USE_POLARSSL == 1) && (CONFIG_USE_MBEDTLS == 1))
+#undef CONFIG_USE_POLARSSL
+#define CONFIG_USE_POLARSSL 1
+#undef CONFIG_USE_MBEDTLS
+#define CONFIG_USE_MBEDTLS  0
+#endif
 #define CONFIG_SSL_CLIENT_PRIVATE_IN_TZ 0
 
 /* For Simple Link */
@@ -108,7 +136,10 @@
  */
 #define CONFIG_ETHERNET     0
 #if CONFIG_ETHERNET
-
+//Choice the different interface for Ethernet
+#define MII_INTERFACE       0
+#define USB_INTERFACE       1
+#define ETHERNET_INTERFACE  USB_INTERFACE //Default MII_INTERFACE
 #define CONFIG_LWIP_LAYER	1
 #define CONFIG_INIT_NET     1 //init lwip layer when start up
 
@@ -121,7 +152,13 @@
 
 /* For LWIP configuration */
 #define CONFIG_LWIP_DHCP_COARSE_TIMER 60
+#define CONFIG_LWIP_TCP_RESUME        1
 
+
+/*Enable CONFIG_LWIP_DHCP_FINE_TIMEOUT if lease time is less than or equal to CONFIG_LWIP_DHCP_COARSE_TIMER
+* replace dhcp_coarse_tmr with dhcp_fine_tmr to manage and check for lease timeout
+*/
+#define CONFIG_LWIP_DHCP_FINE_TIMEOUT 0
 
 /****************** For EAP method example *******************/
 //#define CONFIG_EXAMPLE_EAP	0
@@ -157,4 +194,8 @@
 
 #define CONFIG_FTL_EN 1
 
+/* For RTK EVB IR GPIO CONTROL
+*  GPIO: F12(IR_CUT) F13(IR_LED)
+*/
+#define CONFIG_RTK_EVB_IR_CTRL 0
 #endif

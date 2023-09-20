@@ -4,19 +4,44 @@
 	"PROFILE":["FWFS"],
 	"FWFS":{
         "files":[
-			"MODEL0"
+			"yolov4_tiny",
+			"scrfd320p",
+			"mobilefacenet_i8"
 		]
 	},
-    "MODEL0":{
+    "yolov4_tiny":{
 		"name" : "yolov4_tiny.nb",
 		"source":"binary",
 		"file":"yolov4_tiny.nb"
  
     },
-	"MODEL1":{
+    "yolov4_tiny_320p":{
+		"name" : "yolov4_tiny.nb",
+		"source":"binary",
+		"file":"yolov4_tiny_576x320.nb"
+ 
+    },
+    "mobilefacenet_i8":{
+		"name" : "mobilefacenet.nb",
+		"source":"binary",
+		"file":"mobilefacenet_int8.nb"
+
+    },	
+    "mobilefacenet_i16":{
+		"name" : "mobilefacenet.nb",
+		"source":"binary",
+		"file":"mobilefacenet_int16.nb"
+
+    },
+	"yolov7_tiny":{
 		"name" : "yolov7_tiny.nb",
 		"source":"binary",
 		"file":"yolov7_tiny.nb"
 
+    },
+	"scrfd320p":{
+		"name" : "scrfd.nb",
+		"source":"binary",
+		"file":"scrfd_500m_bnkps_576x320_u8.nb"
     }
 }

@@ -37,8 +37,8 @@
 -------------------------- END-OF-HEADER -----------------------------
 
 File    : SEGGER_SEMIHOST.h
-Purpose : Header for semihosting implementation for standard I/O
-          functions, such as terminal input and output according to
+Purpose : Header for semihosting implementation for standard I/O 
+          functions, such as terminal input and output according to 
           the SEGGER semihosting specification.
 */
 #include "stdarg.h"
@@ -47,7 +47,7 @@ Purpose : Header for semihosting implementation for standard I/O
 #define SEGGER_SEMIHOST_H
 
 #if defined(__cplusplus)
-extern "C" {                // Make sure we have C-declarations in C++ programs.
+  extern "C" {                // Make sure we have C-declarations in C++ programs.
 #endif
 
 /*********************************************************************
@@ -57,11 +57,11 @@ extern "C" {                // Make sure we have C-declarations in C++ programs.
 **********************************************************************
 */
 typedef union {
-	void        *pV;
-	const void *cpV;
-	char        *pC;
-	const char *cpC;
-	int           I;
+  void*        pV;
+  const void* cpV;
+  char*        pC;
+  const char* cpC;
+  int           I;
 } SEGGER_SEMIHOST_PARA;
 
 /*********************************************************************
@@ -98,32 +98,32 @@ typedef union {
 *
 **********************************************************************
 */
-int SEGGER_SEMIHOST_Open(const char *sFilename, int Mode, int LenFilename);
-int SEGGER_SEMIHOST_Close(int hFile);
-int SEGGER_SEMIHOST_WriteC(char c);
-int SEGGER_SEMIHOST_Write0(const char *s);
-int SEGGER_SEMIHOST_Write(int hFile, const char *pBuffer, int NumBytesToWrite);
-int SEGGER_SEMIHOST_Writef(const char *pFormat, va_list *pArg);
-int SEGGER_SEMIHOST_Read(int hFile, char *pBuffer, int NumBytesToRead);
-int SEGGER_SEMIHOST_ReadC(void);
-int SEGGER_SEMIHOST_IsTTY(int hFile);
-int SEGGER_SEMIHOST_Seek(int hFile, int Pos);
-int SEGGER_SEMIHOST_FLen(int hFile);
-int SEGGER_SEMIHOST_TmpName(char *pBuffer, int hFile, int pNumBytesName);
-int SEGGER_SEMIHOST_Remove(const char *pPath, int NumBytesPath);
-int SEGGER_SEMIHOST_Rename(const char *pFileName, int NumBytesFileName, const char *pNewName, int NumBytesNewName);
-int SEGGER_SEMIHOST_Clock(void);
-int SEGGER_SEMIHOST_Time(void);
-int SEGGER_SEMIHOST_System(const char *pCommand, int NumBytesCommand);
-int SEGGER_SEMIHOST_Errno(void);
-int SEGGER_SEMIHOST_GetCmdLine(char *pBuffer, char **psCmdLine, int *pNumBytesCmdLine);
-int SEGGER_SEMIHOST_Elapsed(unsigned long long *pTicks);
-int SEGGER_SEMIHOST_HeapInfo(char *pDataBlock);
-int SEGGER_SEMIHOST_TickFreq(void);
-int SEGGER_SEMIHOST_Exit(int ExitCode);
-int SEGGER_SEMIHOST_IsConnected(void);
+int SEGGER_SEMIHOST_Open        (const char* sFilename, int Mode, int LenFilename);
+int SEGGER_SEMIHOST_Close       (int hFile);
+int SEGGER_SEMIHOST_WriteC      (char c);
+int SEGGER_SEMIHOST_Write0      (const char* s);
+int SEGGER_SEMIHOST_Write       (int hFile, const char* pBuffer, int NumBytesToWrite);
+int SEGGER_SEMIHOST_Writef      (const char* pFormat, va_list* pArg);
+int SEGGER_SEMIHOST_Read        (int hFile, char* pBuffer, int NumBytesToRead);
+int SEGGER_SEMIHOST_ReadC       (void);
+int SEGGER_SEMIHOST_IsTTY       (int hFile);
+int SEGGER_SEMIHOST_Seek        (int hFile, int Pos);
+int SEGGER_SEMIHOST_FLen        (int hFile);
+int SEGGER_SEMIHOST_TmpName     (char* pBuffer, int hFile, int pNumBytesName);
+int SEGGER_SEMIHOST_Remove      (const char* pPath, int NumBytesPath);
+int SEGGER_SEMIHOST_Rename      (const char* pFileName, int NumBytesFileName, const char* pNewName, int NumBytesNewName);
+int SEGGER_SEMIHOST_Clock       (void);
+int SEGGER_SEMIHOST_Time        (void);
+int SEGGER_SEMIHOST_System      (const char* pCommand, int NumBytesCommand);
+int SEGGER_SEMIHOST_Errno       (void);
+int SEGGER_SEMIHOST_GetCmdLine  (char* pBuffer, char** psCmdLine, int* pNumBytesCmdLine);
+int SEGGER_SEMIHOST_Elapsed     (unsigned long long* pTicks);
+int SEGGER_SEMIHOST_HeapInfo    (char* pDataBlock);
+int SEGGER_SEMIHOST_TickFreq    (void);
+int SEGGER_SEMIHOST_Exit        (int ExitCode);
+int SEGGER_SEMIHOST_IsConnected (void);
 
-int SEGGER_SEMIHOST_X_Request(int Op, SEGGER_SEMIHOST_PARA *pPara);
+int SEGGER_SEMIHOST_X_Request   (int Op, SEGGER_SEMIHOST_PARA* pPara);
 
 #if defined(__cplusplus)
 }                             // Make sure we have C-declarations in C++ programs.

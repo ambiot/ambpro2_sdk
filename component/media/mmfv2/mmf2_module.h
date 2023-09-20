@@ -1,18 +1,19 @@
 #ifndef MMF2_MODULE_H
 #define MMF2_MODULE_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include <FreeRTOS.h>
 #include <semphr.h>
-
 #include <diag.h>
+
 #if defined(CONFIG_PLATFORM_8721D)
 #ifndef rt_printf
 #define rt_printf printf
 #endif
 #define mm_printf rt_printf
 #else
-#define mm_printf(...) do{ __disable_irq(); rt_printf(__VA_ARGS__); __enable_irq();}while(0)
+#define mm_printf(...) do{printf(__VA_ARGS__);}while(0)
 #endif
 
 // MM : media module
@@ -38,7 +39,8 @@
 #define MM_CMD_SET_QUEUE_LEN		0x01  // set one queue's length
 #define MM_CMD_SET_QUEUE_NUM		0x02  // set number of queue (multiple queue)
 #define MM_CMD_SELECT_QUEUE			0x03  // select queue from queue0 ~ queue3
-#define MM_CMD_CLEAR_QUEUE_ITEMS     0x04  // clear queue item 
+#define MM_CMD_CLEAR_QUEUE_ITEMS    0x04  // clear queue item 
+#define MM_CMD_SET_DATAGROUP		0x05  // set data group 
 
 
 #define MM_CMD_MODULE_BASE			0x80
@@ -50,6 +52,9 @@
 #define MM_STAT_ERR_MALLOC			0x11
 #define MM_STAT_ERR_QUEUE			0x12
 #define MM_STAT_ERR_NEWITEM			0x13
+
+#define MM_GROUP_START				0x01
+#define MM_GROUP_END				0x02
 
 typedef struct mm_module_s {
 	void *(*create)(void *);
@@ -88,6 +93,9 @@ typedef struct mm_contex_s {
 	// private data structure for created instance
 	void *priv;
 
+	// data share group flag
+	int group_role;
+
 	// module state
 	uint32_t state;
 	int32_t queue_num;			// number of queue
@@ -99,9 +107,15 @@ typedef struct mm_contex_s {
 #define MMQI_FLAG_READY         0x10
 #define MMQI_FLAG_USED          0x20
 
+#define MMQI_VSTATUS_STOP       0x00    //For MM_CMD_CLEAR_QUEUE_ITEMS, this is for the video channel is stopped
+#define MMQI_VSTATUS_START      0x01    //For MM_CMD_CLEAR_QUEUE_ITEMS, this is for the video channel is on
+
 typedef struct mm_queue_item_s {
 	uint32_t flag;
-	uint32_t data_addr;    // store data address
+	uint32_t data_addr;     // store data address
+
+	void *sema[4];			// mutex for data_addr
+	void **ref_sema;		// mutex point to source mutex
 
 	uint32_t timestamp;
 	uint32_t hw_timestamp;
@@ -112,12 +126,17 @@ typedef struct mm_queue_item_s {
 		uint32_t priv_data;
 	};
 	uint32_t in_idx;		// input index
-	char name[128];
+	char name[256];
 } mm_queue_item_t;
 
 
 extern int mm_module_ctrl(mm_context_t *ctx, int cmd, int arg);
 extern mm_context_t *mm_module_open(mm_module_t *mm);
 extern mm_context_t *mm_module_close(mm_context_t *ctx);
+
+#if defined(CONFIG_PLATFORM_8735B)
+#include "mmf2_mediatime_8735b.h"
+#endif
+
 
 #endif

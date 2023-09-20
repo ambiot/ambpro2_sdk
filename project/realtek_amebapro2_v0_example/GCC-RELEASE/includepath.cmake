@@ -58,6 +58,12 @@ list (
     "${sdk_root}/component/wifi/driver/src/hal/phydm/rtl8735b"
     "${sdk_root}/component/wifi/driver/src/hal/phydm"
     "${sdk_root}/component/wifi/wpa_supplicant/wpa_supplicant"
+
+    "${sdk_root}/component/os/freertos/freertos_posix/lib/include/FreeRTOS_POSIX"
+    "${sdk_root}/component/os/freertos/freertos_posix/lib/include"
+    "${sdk_root}/component/os/freertos/freertos_posix/lib/FreeRTOS-Plus-POSIX/include/portable/realtek/rtl8735b"
+    "${sdk_root}/component/os/freertos/freertos_posix/lib/FreeRTOS-Plus-POSIX/include"
+    "${sdk_root}/component/os/freertos/freertos_posix/lib/include/private"
     
 	"${sdk_root}/component/lwip/api"
     "${sdk_root}/component/lwip/${lwip}/src/include"
@@ -69,11 +75,6 @@ list (
 	"${sdk_root}/component/ssl/${mbedtls}/include"
 	"${sdk_root}/component/ssl/ssl_ram_map/rom"
     
-    "${sdk_root}/component/os/freertos/freertos_posix/lib/include/FreeRTOS_POSIX"
-    "${sdk_root}/component/os/freertos/freertos_posix/lib/include"
-    "${sdk_root}/component/os/freertos/freertos_posix/lib/FreeRTOS-Plus-POSIX/include/portable/realtek/rtl8735b"
-    "${sdk_root}/component/os/freertos/freertos_posix/lib/FreeRTOS-Plus-POSIX/include"
-    "${sdk_root}/component/os/freertos/freertos_posix/lib/include/private"
 
 	"${sdk_root}/component/usb/usb_class/device/class"
 	"${sdk_root}/component/usb/usb_class/device"

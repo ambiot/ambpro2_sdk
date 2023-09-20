@@ -198,7 +198,10 @@
 #if CONFIG_ASIC  // ASIC(Default not run PXP DDR Init flow)
 #define SIMU_DDR_PXP_INIT_FLOW_EN           (0)   // is enable to run PXP DDR init flow
 #define POST_SIMU_ADJUST_FLOW_EN            (0)   // is enable to run post-simu related flow
+
 #endif
+
+#define FCS_SIMU_DISABLE_KM_BLDR_INIT_EN    (0)   // is enable to skip boot loader voe ram init process
 
 #if IS_CUT_TEST(CONFIG_CHIP_VER)    // Test-chip
 #define LOAD_FLAH_IMG_NEW_FORMAT            (0)   // IMG new format(TLV), Default Disable for test-chip

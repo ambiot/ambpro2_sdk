@@ -62,8 +62,8 @@
             "valid": true
         },
         "fw1":{
-            "start_addr" : "0x100000",
-            "length" : "0x300000",
+            "start_addr" : "0x80000",
+            "length" : "0x380000",
             "type": "PT_FW1",
             "valid": true
         },
@@ -75,13 +75,13 @@
         },
         "fw2":{
             "start_addr" : "0x4C0000",
-            "length" : "0x300000",
+            "length" : "0x380000",
             "type": "PT_FW2",
             "valid": true
         },
         "nn":{
-            "start_addr" : "0x7C0000",
-            "length" : "0x700000",
+            "start_addr" : "0x840000",
+            "length" : "0x5C0000",
             "type": "PT_NN_MDL",
             "valid": true
         },
@@ -98,7 +98,7 @@
             "valid": true
 		},
         "mp":{
-        	"start_addr" : "0xDC0000",
+            "start_addr" : "0xFC0000",
         	"length" : "0x1000",
         	"type": "PT_MP",
         	"valid": false

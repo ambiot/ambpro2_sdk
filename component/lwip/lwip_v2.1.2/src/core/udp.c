@@ -1330,4 +1330,16 @@ udp_debug_print(struct udp_hdr *udphdr)
 }
 #endif /* UDP_DEBUG */
 
+/* Added by Realtek start */
+uint16_t udp_get_last_port(void)
+{
+  return udp_port;
+}
+
+void udp_set_last_port(uint16_t port)
+{
+  udp_port = port;
+}
+/* Added by Realtek end */
+
 #endif /* LWIP_UDP */

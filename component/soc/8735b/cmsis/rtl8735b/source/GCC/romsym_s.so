@@ -92,4 +92,6 @@ SECTIONS
 	hal_trng_sec_stubs = 0x10001240;
 	__rom_stubs_hal_sys_ctrl_hgih_val_prot = 0x100012a0;
 	hal_sys_ctrl_high_val_prot_stubs = 0x100012a0;
+	__rom_stubs_hal_sys_ctrl_extend = 0x100012c0;
+	hal_sys_ctrl_extend_stubs = 0x100012c0;
 }

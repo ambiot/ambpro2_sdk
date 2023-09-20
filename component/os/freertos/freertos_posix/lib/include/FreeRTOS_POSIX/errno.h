@@ -83,13 +83,17 @@
 /**
  * @brief Define FreeRTOS+POSIX errno, if enabled.
  */
-#if ( configUSE_POSIX_ERRNO == 1 )
+#if defined(configUSE_POSIX_ERRNO) && ( configUSE_POSIX_ERRNO == 1 )
 
 /**
  * @brief System error variable, errno.
  */
     extern int FreeRTOS_errno;
     #define errno FreeRTOS_errno
+#else
+#if defined(__GNUC__) && !defined(_SYS_ERRNO_H_)
+#include <sys/errno.h>
+#endif
 #endif
 
 #endif /* ifndef _FREERTOS_POSIX_ERRNO_H_ */

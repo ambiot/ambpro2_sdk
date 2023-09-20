@@ -1238,4 +1238,67 @@ etharp_request(struct netif *netif, const ip4_addr_t *ipaddr)
   return etharp_request_dst(netif, ipaddr, &ethbroadcast);
 }
 
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+#include <hal_cache.h>
+__attribute__((section (".retention.data"))) struct etharp_entry retention_arp_table[ARP_TABLE_SIZE] __attribute__((aligned(32)));
+__attribute__((section (".retention.data"))) uint8_t retention_have_new_arp __attribute__((aligned(32))) = 0;
+
+int arp_retain(void)
+{
+  memset(retention_arp_table, 0, sizeof(retention_arp_table));
+  for (int i = 0; i < ARP_TABLE_SIZE; i ++) {
+    if (arp_table[i].state == ETHARP_STATE_STABLE) {
+      memcpy(&retention_arp_table[i], &arp_table[i], sizeof(struct etharp_entry));
+      retention_arp_table[i].q = NULL;
+      retention_arp_table[i].ctime = 0;
+    }
+  }
+  dcache_clean_invalidate_by_addr((uint32_t *) retention_arp_table, sizeof(retention_arp_table));
+
+  retention_have_new_arp = 1;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_arp, sizeof(retention_have_new_arp));
+
+  return 0;
+}
+
+int arp_resume(void)
+{
+  if (!retention_have_new_arp) {
+    return -1;
+  }
+
+  memcpy(arp_table, retention_arp_table, sizeof(arp_table));
+
+  retention_have_new_arp = 0;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_arp, sizeof(retention_have_new_arp));
+
+  return 0;
+}
+
+uint8_t lwip_check_arp_resume(void)
+{
+  if (retention_have_new_arp == 1) {
+    return 1;
+  }
+
+  return 0;
+}
+
+void arp_table_dump(void)
+{
+  for (int i = 0; i < ARP_TABLE_SIZE; i ++) {
+    if (arp_table[i].state == ETHARP_STATE_STABLE) {
+      ip4_addr_t *ipaddr = &arp_table[i].ipaddr;
+      struct eth_addr *ethaddr = &arp_table[i].ethaddr;
+      printf("\n\rarp_entry[%d]: %u.%u.%u.%u - %02x:%02x:%02x:%02x:%02x:%02x\n\r", i,
+        ip4_addr1_16(ipaddr), ip4_addr2_16(ipaddr), ip4_addr3_16(ipaddr), ip4_addr4_16(ipaddr),
+        (u16_t)ethaddr->addr[0], (u16_t)ethaddr->addr[1], (u16_t)ethaddr->addr[2],
+        (u16_t)ethaddr->addr[3], (u16_t)ethaddr->addr[4], (u16_t)ethaddr->addr[5]);
+    }
+  }
+}
+#endif // defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+/* Added by Realtek end */
+
 #endif /* LWIP_IPV4 && LWIP_ARP */

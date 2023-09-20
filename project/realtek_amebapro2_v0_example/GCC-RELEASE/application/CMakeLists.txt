@@ -8,10 +8,6 @@ set (prj_root "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set (sdk_root "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
 set(app_ntz application.ntz)
 
-set(freertos "freertos_v202012.00")
-set(lwip "lwip_v2.1.2")
-set(mbedtls "mbedtls-2.16.6")
-
 message(STATUS "Build libraries ${BUILD_LIB}")
 message(STATUS "Build FPGA ${BUILD_FPGA}")
 message(STATUS "Build PXP ${BUILD_PXP}")

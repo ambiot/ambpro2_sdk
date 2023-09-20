@@ -29,10 +29,12 @@ if(NOT DEFINED CONFIG_DONE)
 	set(freertos "freertos_v202012.00")
 	set(lwip "lwip_v2.1.2")
 	set(mbedtls "mbedtls-2.16.6")
+	set(viplite "VIPLiteDrv_1.12.0")
 	
 	message(STATUS "FreeRTOS = ${freertos}")
 	message(STATUS "LWIP     = ${lwip}")
 	message(STATUS "mbedTLS  = ${mbedtls}")
+	message(STATUS "VIPLite  = ${viplite}")
 	
 	if(NOT DEFINED CUTVER)
 		set(CUTVER "B")
@@ -89,6 +91,16 @@ if(NOT DEFINED CONFIG_DONE)
 	if(NOT DEFINED DEBUG)
 		set(DEBUG OFF)
 	endif()
+    
+	#AUDIO AEC LIB
+	if (NOT DEFINED BUILD_NEWAEC)
+		set(BUILD_NEWAEC ON)
+	endif()
+	
+	if(NOT DEFINED UNITEST)
+		set(UNITEST OFF)
+	endif()
+	message(STATUS "UNITEST ${UNITEST}")
 	
 	#elf2bin
 	if(NOT DEFINED ELF2BIN)
@@ -118,11 +130,33 @@ if(NOT DEFINED CONFIG_DONE)
 	endif()
 	endif()		
 	
+	if(NOT DEFINED NNMDLCFG)
+	if(MPCHIP)
+		if (LINUX)
+		set(NNMDLCFG ${prj_root}/GCC-RELEASE/mp/nn_model_cfg.linux)
+		else()		
+		set(NNMDLCFG ${prj_root}/GCC-RELEASE/mp/nn_model_cfg.exe)
+		endif()
+	endif()
+	endif()		
+	
+	if(NOT DEFINED GENSNRLST)
+	if(MPCHIP)
+		if (LINUX)
+		set(GENSNRLST ${prj_root}/GCC-RELEASE/mp/gen_snrlst.linux)
+		else()		
+		set(GENSNRLST ${prj_root}/GCC-RELEASE/mp/gen_snrlst.exe)
+		endif()
+	endif()
+	endif()		
+	
 	#platform console command, for wildcard
 	if (LINUX OR WIN_MSYS)
 		set(PLAT_COPY cp)
+		set(PLAT_FINDSTR grep)
 	else()		
 		set(PLAT_COPY copy)
+		set(PLAT_FINDSTR findstr)
 	endif()
 	
 	#default postbuild script
@@ -146,9 +180,7 @@ if(NOT DEFINED CONFIG_DONE)
 		
 		set(VOE_BIN_PATH       ${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/source/ram/video/voe_bin)
 		
-		set(NN_MODEL_PATH		${prj_root}/src/test_model)
-		#set(USED_NN_MODEL		${prj_root}/src/test_model/yolov4_tiny.nb)
-		#set(USED_NN_MODEL		${prj_root}/src/test_model/yamnet_fp16.nb)
+		set(NN_MODEL_PATH		${prj_root}/src/test_model/model_nb)
 	endif()	
 
 	execute_process(

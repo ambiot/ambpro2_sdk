@@ -105,6 +105,31 @@ static void tcp_remove_sacks_gt(struct tcp_pcb *pcb, u32_t seq);
 #endif /* TCP_OOSEQ_BYTES_LIMIT || TCP_OOSEQ_PBUFS_LIMIT */
 #endif /* LWIP_TCP_SACK_OUT */
 
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+static u16_t tcp_resume_port = 0;
+static u16_t tcp_resume_port_bak = 0;
+static u8_t tcp_resume_debug = 0;
+static u8_t tcp_resume_bypass_ooseq = 0;
+
+void tcp_set_resume_port(u16_t port)
+{
+  tcp_resume_port = port;
+  if (port != 0) tcp_resume_port_bak = port;
+}
+
+void tcp_set_resume_bypass_ooseq(u8_t bypass)
+{
+  tcp_resume_bypass_ooseq = bypass;
+}
+
+void tcp_set_resume_debug(u8_t debug)
+{
+  tcp_resume_debug = debug;
+}
+#endif
+/* Added by Realtek end */
+
 /**
  * The initial input processing of TCP. It verifies the TCP header, demultiplexes
  * the segment between the PCBs and passes it on to tcp_process(), which implements
@@ -230,6 +255,17 @@ tcp_input(struct pbuf *p, struct netif *inp)
   seqno = tcphdr->seqno = lwip_ntohl(tcphdr->seqno);
   ackno = tcphdr->ackno = lwip_ntohl(tcphdr->ackno);
   tcphdr->wnd = lwip_ntohs(tcphdr->wnd);
+
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+  // drop packet before tcp resume done
+  if (tcp_resume_port && (tcphdr->dest == tcp_resume_port)) {
+    if (tcp_resume_debug) printf("\n\rdrop %u[%u]\n\r", seqno, p->tot_len);
+    pbuf_free(p);
+    return;
+  }
+#endif
+/* Added by Realtek end */
 
   flags = TCPH_FLAGS(tcphdr);
   tcplen = p->tot_len;
@@ -497,6 +533,9 @@ tcp_input(struct pbuf *p, struct netif *inp)
             goto aborted;
           }
 
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+          if (tcp_resume_debug && (pcb->local_port == tcp_resume_port_bak)) printf("\n\rnotify %u[%u]\n\r", seqno, recv_data->tot_len);
+#endif
           /* Notify application that data has been received. */
           TCP_EVENT_RECV(pcb, recv_data, ERR_OK, err);
           if (err == ERR_ABRT) {
@@ -1456,7 +1495,18 @@ tcp_receive(struct tcp_pcb *pcb)
        processed. */
     if (TCP_SEQ_BETWEEN(seqno, pcb->rcv_nxt,
                         pcb->rcv_nxt + pcb->rcv_wnd - 1)) {
+
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+retry_seqno_check:
+#endif
+
       if (pcb->rcv_nxt == seqno) {
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+        if (tcp_resume_bypass_ooseq && (pcb->local_port == tcp_resume_port_bak)) {
+          if (tcp_resume_debug) printf("\n\rdisable bypass ooseq on %u[%u]\n\r", seqno, inseg.p->tot_len);
+          tcp_resume_bypass_ooseq = 0;
+        }
+#endif
         /* The incoming segment is the next in sequence. We check if
            we have to trim the end of the segment and update rcv_nxt
            and pass the data to the application. */
@@ -1646,6 +1696,14 @@ tcp_receive(struct tcp_pcb *pcb)
         /* We get here if the incoming segment is out-of-sequence. */
 
 #if TCP_QUEUE_OOSEQ
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+        if (tcp_resume_bypass_ooseq && (pcb->local_port == tcp_resume_port_bak)) {
+          if (tcp_resume_debug) printf("\n\rretry out-of-seq %u[%u] after %u\n\r", seqno, inseg.p->tot_len, pcb->rcv_nxt);
+          pcb->rcv_nxt = seqno;
+          goto retry_seqno_check;
+        }
+        if (tcp_resume_debug && (pcb->local_port == tcp_resume_port_bak)) printf("\n\rqueue out-of-seq %u[%u] after %u\n\r", seqno, inseg.p->tot_len, pcb->rcv_nxt);
+#endif
         /* We queue the segment on the ->ooseq queue. */
         if (pcb->ooseq == NULL) {
           pcb->ooseq = tcp_seg_copy(&inseg);

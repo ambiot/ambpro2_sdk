@@ -1636,4 +1636,75 @@ dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr, dns_found_call
                      LWIP_DNS_ISMDNS_ARG(is_mdns));
 }
 
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+#include <hal_cache.h>
+__attribute__((section (".retention.data"))) struct dns_table_entry retention_dns_table[DNS_TABLE_SIZE] __attribute__((aligned(32)));
+__attribute__((section (".retention.data"))) uint8_t retention_dns_seqno __attribute__((aligned(32))) = 0;
+__attribute__((section (".retention.data"))) uint8_t retention_have_new_dns __attribute__((aligned(32))) = 0;
+
+int dns_retain(void)
+{
+  memset(retention_dns_table, 0, sizeof(retention_dns_table));
+  for (int i = 0; i < DNS_TABLE_SIZE; i ++) {
+    if (dns_table[i].state == DNS_STATE_DONE) {
+      memcpy(&retention_dns_table[i], &dns_table[i], sizeof(struct dns_table_entry));
+    }
+  }
+  dcache_clean_invalidate_by_addr((uint32_t *) retention_dns_table, sizeof(retention_dns_table));
+
+  retention_dns_seqno = dns_seqno;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_dns_seqno, sizeof(retention_dns_seqno));
+
+  retention_have_new_dns = 1;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_dns, sizeof(retention_have_new_dns));
+
+  return 0;
+}
+
+int dns_resume(uint32_t passed_seconds)
+{
+  if (!retention_have_new_dns) {
+    return -1;
+  }
+
+  for (int i = 0; i < DNS_TABLE_SIZE; i ++) {
+    if ((retention_dns_table[i].state == DNS_STATE_DONE) && (retention_dns_table[i].ttl > passed_seconds)) {
+      memcpy(&dns_table[i], &retention_dns_table[i], sizeof(struct dns_table_entry));
+      dns_table[i].ttl -= passed_seconds;
+    }
+  }
+
+  dns_seqno = retention_dns_seqno;
+
+  retention_have_new_dns = 0;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_dns, sizeof(retention_have_new_dns));
+
+  return 0;
+}
+
+uint8_t lwip_check_dns_resume(void)
+{
+  if (retention_have_new_dns == 1) {
+    return 1;
+  }
+
+  return 0;
+}
+
+void dns_table_dump(void)
+{
+  for (int i = 0; i < DNS_TABLE_SIZE; i ++) {
+    if (dns_table[i].state == DNS_STATE_DONE) {
+      struct dns_table_entry *entry = &dns_table[i];
+      ip4_addr_t *ipaddr = &entry->ipaddr;
+      printf("dns_table[%d] ttl=%u, ipaddr=%u.%u.%u.%u, txid=%u, state=%u, server_idx=%u, tmr=%u, retries=%u, seqno=%u, pcb_idx=%u, name=%s \n\r",
+             i, entry->ttl, ip4_addr1_16(ipaddr), ip4_addr2_16(ipaddr), ip4_addr3_16(ipaddr), ip4_addr4_16(ipaddr), entry->txid,
+             entry->state, entry->server_idx, entry->tmr, entry->retries, entry->seqno, entry->pcb_idx, entry->name);
+    }
+  }
+}
+#endif // defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+/* Added by Realtek end */
+
 #endif /* LWIP_DNS */

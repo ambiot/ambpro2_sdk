@@ -56,11 +56,33 @@ void video_example_main(void *param)
 
 	example_mmf2_video_surport();
 
+	// Disable video log
+	vTaskDelay(1000);
+	video_ctrl(0, VIDEO_DEBUG, 0);
+
 	// TODO: exit condition or signal
 	while (1) {
 		vTaskDelay(10000);
 		// extern mm_context_t *video_v1_ctx;
 		// mm_module_ctrl(video_v1_ctx, CMD_VIDEO_PRINT_INFO, 0);
+		// check video frame here
+		if (hal_video_get_no_video_time() > 1000 * 30) {
+			printf("no video frame time > %d ms", hal_video_get_no_video_time());
+			//reopen video or system reset
+
+			sys_reset();
+		}
+#if 0	//get encode buffer info	
+		int ret = 0;
+		int enc_size = 0;
+		int out_buf_size;
+		int out_rsvd_size;
+		ret = video_get_buffer_info(0, &enc_size, &out_buf_size, &out_rsvd_size);
+		printf("enc_size = %d\r\n", enc_size >> 10);
+		printf("out_buf_size = %d\r\n", out_buf_size >> 10);
+		printf("out_rsvd_size = %d\r\n", out_rsvd_size >> 10);
+#endif
+
 	}
 }
 

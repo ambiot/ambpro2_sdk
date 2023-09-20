@@ -8,7 +8,7 @@ INCLUDE "romsym_is.so"
 
 DDR_SIZE = 128;
 DRAM_SIZE =(DDR_SIZE - 2);
-NN_SIZE = 8;
+NN_SIZE = 16;
 
 DRAM_END = 0x70000000 + (DRAM_SIZE - NN_SIZE)*1024*1024;
 NN_END   = 0x70000000 + (DRAM_SIZE)*1024*1024;
@@ -24,6 +24,7 @@ MEMORY
   ITCM_RAM_BSS  (rwx)	: ORIGIN = 0x00018300, LENGTH = 0x00020300 - 0x00018300  /* 32 KB */
   ITCM_RAM      (rwx)	: ORIGIN = 0x00020300, LENGTH = 0x00040000 - 0x00020300  /* 63.25KB */
   RAM           (rwx)	: ORIGIN = 0x20101200, LENGTH = 0x20105200 - 0x20101200  /* 16 KB */
+  RAM_BSS       (rwx)	: ORIGIN = 0x20105200, LENGTH = 0x20106200 - 0x20105200  /* 4 KB */
   VOE           (rwx)	: ORIGIN = 0x70000000, LENGTH = 0x70100000 - 0x70000000  /* 1MB */ 
   NN     (rwx)          : ORIGIN = 0x72C00000, LENGTH = 0x74000000 - 0x72C00000	 /* 20MB For FCS*/
   /* DDR 64M */
@@ -123,6 +124,15 @@ SECTIONS
 		__ram_start_table_end__ = .;
 
 	} > RAM_FUN_TABLE
+
+	.ram.bss :
+	{
+		. = ALIGN(4);
+		__ram_bss_start__ = .;        
+		KEEP(*(.ram.hal_crypto.bss))
+		. = ALIGN(4);
+		__ram_bss_end__ = .;
+	} > RAM_BSS
 
 	.bss :
 	{

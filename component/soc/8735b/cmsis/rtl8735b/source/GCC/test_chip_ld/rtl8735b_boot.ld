@@ -12,7 +12,8 @@ MEMORY
   /* Use Secure RAM last 60KB for boot loader used */
   VECTORS_RAM (rwx)		: ORIGIN = 0x20166000, LENGTH = 0x20166200 - 0x20166000  /* 512B */
   RAM_FUN_TABLE (rwx)	: ORIGIN = 0x20166200, LENGTH = 0x20166300 - 0x20166200  /* 240B */ 
-  RAM (rwx)				: ORIGIN = 0x20166300, LENGTH = 0x20176300 - 0x20166300  /* 64 KB */
+  RAM_BSS (rwx)			: ORIGIN = 0x20166300, LENGTH = 0x20167300 - 0x20166300  /* 4 KB */
+  RAM (rwx)				: ORIGIN = 0x20167300, LENGTH = 0x20176300 - 0x20167300  /* 60 KB */
   VOE           (rwx)	: ORIGIN = 0x70000000, LENGTH = 0x70100000 - 0x70000000	/*  1MB */
 }
 
@@ -98,6 +99,15 @@ SECTIONS
 		__ram_start_table_end__ = .;
 
 	} > RAM_FUN_TABLE
+
+    .ram.bss :
+	{
+		. = ALIGN(4);
+		__ram_bss_start__ = .;        
+		KEEP(*(.ram.hal_crypto.bss))
+		. = ALIGN(4);
+		__ram_bss_end__ = .;
+    } > RAM_BSS
 
 	.bss :
 	{

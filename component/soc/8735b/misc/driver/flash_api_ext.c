@@ -8,7 +8,7 @@
   */
 void flash_resource_lock(void)
 {
-	rtw_cpu_lock();
+//	rtw_cpu_lock();
 }
 
 /**
@@ -18,6 +18,6 @@ void flash_resource_lock(void)
   */
 void flash_resource_unlock(void)
 {
-	rtw_cpu_unlock();
+//	rtw_cpu_unlock();
 }
 

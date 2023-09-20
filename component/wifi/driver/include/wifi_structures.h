@@ -22,7 +22,7 @@
   * @brief   This file provides the data structures used for wlan API.
   ******************************************************************************
   */
-
+//
 #ifndef _WIFI_STRUCTURES_H
 #define _WIFI_STRUCTURES_H
 
@@ -153,6 +153,8 @@ typedef struct {
 typedef struct {
 	unsigned short active_scan_time;      /*!< active scan time per channel, units: millisecond, default is 100ms */
 	unsigned short passive_scan_time;     /*!< passive scan time per channel, units: millisecond, default is 110ms */
+	unsigned short home_scan_time;     /*!< home channel scan time, units: millisecond, default is 100ms */
+	unsigned char  probe_cnt;
 } rtw_channel_scan_time_t;
 
 typedef rtw_result_t (*scan_user_callback_t)(\
@@ -192,7 +194,7 @@ typedef struct {
 	unsigned char		bssid[6];   /**< the bssid of connected AP or softAP */
 	unsigned char		channel;
 	rtw_security_t		security_type;   /**< the security type of connected AP or softAP */
-	unsigned char 		password[65];   /**< the password of connected AP or softAP */
+	unsigned char 		password[RTW_MAX_PSK_LEN + 1]; /**< the password of connected AP or softAP */
 	unsigned char		key_idx;
 } rtw_wifi_setting_t;
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__GNUC__) || defined(__CC_ARM) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
@@ -207,7 +209,7 @@ typedef struct {
 	unsigned char 		ssid[32];
 	unsigned char		ssid_len;
 	unsigned char		security_type;
-	unsigned char		password[65];
+	unsigned char		password[RTW_MAX_PSK_LEN + 1];
 	unsigned char		password_len;
 	unsigned char		channel;
 } rtw_wifi_config_t;
@@ -374,7 +376,7 @@ typedef struct {
 struct psk_info {
 	unsigned char index;                  ///<  index
 	unsigned char psk_essid[32 + 4]; ///< refer to NDIS_802_11_LENGTH_SSID + 4
-	unsigned char psk_passphrase[64 + 1]; ///< refer to IW_PASSPHRASE_MAX_SIZE + 1
+	unsigned char psk_passphrase[RTW_MAX_PSK_LEN + 1]; ///< refer to IW_PASSPHRASE_MAX_SIZE + 1
 	unsigned char wpa_global_PSK[20 * 2]; ///< refer to A_SHA_DIGEST_LEN * 2
 };
 
@@ -406,7 +408,9 @@ typedef struct {
 	unsigned int false_alarm_ofdm;
 	unsigned int cca_cck;
 	unsigned int cca_ofdm;
+	unsigned int tx_total;
 	unsigned int tx_retry;
+	unsigned short tx_ok;
 	unsigned short tx_drop;
 	unsigned int rx_drop;
 } rtw_phy_statistics_t;
@@ -431,6 +435,7 @@ typedef struct {
 struct  wifi_user_conf {
 	unsigned char rtw_adaptivity_en;
 	unsigned char rtw_adaptivity_mode;
+	unsigned char rtw_adaptivity_th_l2h_ini;
 
 	unsigned char rtw_tx_pwr_lmt_enable;	///< 0: disable, 1: enable, 2: Depend on efuse(flash)
 	unsigned char rtw_tx_pwr_by_rate;	///< 0: disable, 1: enable, 2: Depend on efuse(flash)
@@ -439,6 +444,7 @@ struct  wifi_user_conf {
 	unsigned char rtw_powersave_en;
 
 	unsigned char rtw_cmd_tsk_spt_wap3;
+	unsigned char rtw_ignore_security;
 
 	unsigned char g_user_ap_sta_num;
 
@@ -457,6 +463,7 @@ struct  wifi_user_conf {
 
 	unsigned char bAcceptAddbaReq;
 	unsigned char bIssueAddbaReq;	///< 0: disable issue addba request, 1: enable issue addba request
+	unsigned char addba_ampdu_size;
 
 	unsigned char bCheckDestAddress; ///< 0: don't check dest mac and ip address for station, 1: check dest mac and ip address for station
 
@@ -475,8 +482,36 @@ struct  wifi_user_conf {
 	unsigned char ap_polling_sta;
 
 	unsigned char channel_plan;
+
+	unsigned char country_code;
+
+	unsigned char band_type;	// 0: 2.4g & 5g, 1: 2.4g, 2: 5g
+
+	/*
+	The wifi_debug_enabled is used to configure the wlan debug settings, each bit controls one aspect.
+	bit 0: (0: disable 4way handshake debug, 1:  enable 4way handshake debug messenge)
+	bit 1: (0: disable wifi connection profile info, 1:  enable wifi connection profile info)
+	bit 2: (0: show wifi connection state, 1:  show wifi connection state time)
+	*/
+	unsigned char wifi_debug_enabled;
 } ;
 extern  struct wifi_user_conf wifi_user_config;
+
+struct  wifi_default_conf {
+	unsigned short active_scan_timeout;    /*!< active scan time per channel, units: millisecond, default is 100ms */
+	unsigned short passive_scan_timeout;   /*!< passive scan time per channel, units: millisecond, default is 110ms */
+	unsigned short home_scan_timeout;      /*!< home channel scan time, units: millisecond, default is 100ms */
+	unsigned char  scan_probe_cnt;
+
+	// Packet retry limit
+	unsigned char short_retry_limit;
+	unsigned char long_retry_limit;
+
+	/* RTS/CTS */
+	unsigned char rts_cts_en;	// 0: disable, 1: enable, 2: depend on driver
+	unsigned int rts_threshold; // default 2437
+} ;
+extern  struct wifi_default_conf wifi_default_config;
 
 /**
   * @brief  The structure is used to describe the cfg parameters used for csi report,

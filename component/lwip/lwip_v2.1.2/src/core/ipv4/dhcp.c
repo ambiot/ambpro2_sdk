@@ -449,7 +449,11 @@ dhcp_coarse_tmr(void)
   NETIF_FOREACH(netif) {
     /* only act on DHCP configured interfaces */
     struct dhcp *dhcp = netif_dhcp_data(netif);
-    if ((dhcp != NULL) && (dhcp->state != DHCP_STATE_OFF)) {
+    if ((dhcp != NULL) && (dhcp->state != DHCP_STATE_OFF)
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+          && ((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS > 1)
+#endif
+    ) {	  
       /* compare lease time to expire timeout */
       if (dhcp->t0_timeout && (++dhcp->lease_used == dhcp->t0_timeout)) {
         LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_coarse_tmr(): t0 timeout\n"));
@@ -501,6 +505,33 @@ dhcp_fine_tmr(void)
         /* this client's request timeout triggered */
         dhcp_timeout(netif);
       }
+	  
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+      if((dhcp->state != DHCP_STATE_OFF) &&
+        ((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS <= 1)){
+        if (dhcp->t0_timeout && (++dhcp->lease_used == dhcp->t0_timeout)) {
+        LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_fine_tmr(): t0 timeout\n"));
+        /* this clients' lease time has expired */
+//ipv6
+#if LWIP_IPV4 && !LWIP_IPV6
+        igmp_report_groups_leave(netif);    //Realtek add: not remove group to make able to report group when dhcp bind
+#endif
+        dhcp_release(netif);
+        dhcp_discover(netif);
+        /* timer is active (non zero), and triggers (zeroes) now? */
+        } else if (dhcp->t2_rebind_time && (dhcp->t2_rebind_time-- == 1)) {
+          LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_fine_tmr(): t2 timeout\n"));
+          /* this clients' rebind timeout triggered */
+          dhcp_t2_timeout(netif);
+        /* timer is active (non zero), and triggers (zeroes) now */
+        } else if (dhcp->t1_renew_time && (dhcp->t1_renew_time-- == 1)) {
+          LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("dhcp_fine_tmr(): t1 timeout\n"));
+          /* this clients' renewal timeout triggered */
+          dhcp_t1_timeout(netif);
+        }
+      }
+#endif	  
+	  
     }
   }
 }
@@ -607,9 +638,20 @@ dhcp_t2_timeout(struct netif *netif)
        DHCP_STATE_REBINDING, not DHCP_STATE_BOUND */
     dhcp_rebind(netif);
     /* Calculate next timeout */
-    if (((dhcp->t0_timeout - dhcp->lease_used) / 2) >= ((60 + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS)) {
-      dhcp->t2_rebind_time = (u16_t)((dhcp->t0_timeout - dhcp->lease_used) / 2);
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+    if((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS <= 1){
+      if (((dhcp->t0_timeout - dhcp->lease_used) / 2) >= ((500 + DHCP_FINE_TIMER_MSECS / 2) / DHCP_FINE_TIMER_MSECS)) {
+        dhcp->t2_rebind_time = (u16_t)((dhcp->t0_timeout - dhcp->lease_used) / 2);
+      }
     }
+    else{
+#endif
+      if (((dhcp->t0_timeout - dhcp->lease_used) / 2) >= ((60 + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS)) {
+        dhcp->t2_rebind_time = (u16_t)((dhcp->t0_timeout - dhcp->lease_used) / 2);
+      }
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+    }
+#endif
   }
 }
 
@@ -1122,7 +1164,15 @@ dhcp_bind(struct netif *netif)
   if (dhcp->offered_t0_lease != 0xffffffffUL) {
     /* set renewal period timer */
     LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_bind(): t0 renewal timer %"U32_F" secs\n", dhcp->offered_t0_lease));
-    timeout = (dhcp->offered_t0_lease + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+     if((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS <= 1){
+       timeout = ((dhcp->offered_t0_lease * 1000) + DHCP_FINE_TIMER_MSECS / 2) / DHCP_FINE_TIMER_MSECS;
+     }
+     else
+#endif
+	{
+       timeout = (dhcp->offered_t0_lease + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+	}
     if (timeout > 0xffff) {
       timeout = 0xffff;
     }
@@ -1137,7 +1187,15 @@ dhcp_bind(struct netif *netif)
   if (dhcp->offered_t1_renew != 0xffffffffUL) {
     /* set renewal period timer */
     LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_bind(): t1 renewal timer %"U32_F" secs\n", dhcp->offered_t1_renew));
-    timeout = (dhcp->offered_t1_renew + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+    if((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS <= 1){
+      timeout = ((dhcp->offered_t1_renew * 1000) + DHCP_FINE_TIMER_MSECS / 2) / DHCP_FINE_TIMER_MSECS;
+    }
+    else
+#endif
+	{
+      timeout = (dhcp->offered_t1_renew + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+    }
     if (timeout > 0xffff) {
       timeout = 0xffff;
     }
@@ -1151,7 +1209,15 @@ dhcp_bind(struct netif *netif)
   /* set renewal period timer */
   if (dhcp->offered_t2_rebind != 0xffffffffUL) {
     LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_bind(): t2 rebind timer %"U32_F" secs\n", dhcp->offered_t2_rebind));
-    timeout = (dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+#if CONFIG_LWIP_DHCP_FINE_TIMEOUT
+    if((dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS <= 1){
+      timeout = ((dhcp->offered_t2_rebind * 1000) + DHCP_FINE_TIMER_MSECS / 2) / DHCP_FINE_TIMER_MSECS;
+    }
+    else
+#endif
+	{
+      timeout = (dhcp->offered_t2_rebind + DHCP_COARSE_TIMER_SECS / 2) / DHCP_COARSE_TIMER_SECS;
+    }
     if (timeout > 0xffff) {
       timeout = 0xffff;
     }
@@ -2061,5 +2127,102 @@ dhcp_supplied_address(const struct netif *netif)
   }
   return 0;
 }
+
+/* Added by Realtek start */
+#if defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+#include <hal_cache.h>
+__attribute__((section (".retention.data"))) struct dhcp retention_dhcp __attribute__((aligned(32)));
+__attribute__((section (".retention.data"))) uint8_t retention_have_new_dhcp __attribute__((aligned(32))) = 0;
+__attribute__((section (".retention.data"))) ip_addr_t retention_dns_servers[DNS_MAX_SERVERS] __attribute__((aligned(32)));
+__attribute__((section (".retention.data"))) uint16_t retention_tcp_port __attribute__((aligned(32))) = 0;
+__attribute__((section (".retention.data"))) uint16_t retention_udp_port __attribute__((aligned(32))) = 0;
+extern struct netif xnetif[];
+
+int dhcp_retain(void)
+{
+  struct dhcp *dhcp = netif_dhcp_data(&xnetif[0]);
+  if (dhcp == NULL) {
+    return -1;
+  }
+  if (dhcp->state == DHCP_STATE_OFF) {
+    return -1;
+  }
+  if (dhcp->offered_ip_addr.addr == 0) {
+    return -1;
+  }
+  memcpy(&retention_dhcp, dhcp, sizeof(struct dhcp));
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_dhcp, sizeof(struct dhcp));
+
+  // dns
+  for (int i = 0; i < DNS_MAX_SERVERS; i ++) {
+    memcpy(&retention_dns_servers[i], dns_getserver(i), sizeof(ip_addr_t));
+  }
+  dcache_clean_invalidate_by_addr((uint32_t *) retention_dns_servers, sizeof(retention_dns_servers));
+
+  // last local port
+  extern uint16_t tcp_get_last_port(void);
+  retention_tcp_port = tcp_get_last_port();
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_tcp_port, sizeof(retention_tcp_port));
+  extern uint16_t udp_get_last_port(void);
+  retention_udp_port = udp_get_last_port();
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_udp_port, sizeof(retention_udp_port));
+
+  retention_have_new_dhcp = 1;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_dhcp, sizeof(retention_have_new_dhcp));
+
+  return 0;
+}
+
+int dhcp_resume(void)
+{
+  // dns
+  for (int i = 0; i < DNS_MAX_SERVERS; i ++) {
+    dns_setserver(i, &retention_dns_servers[i]);
+  }
+
+  struct dhcp *dhcp = (struct dhcp *)mem_malloc(sizeof(struct dhcp));
+  if (dhcp == NULL) {
+    printf("\n\r ERROR: mem_malloc \n\r");
+    return -1;
+  }
+  memcpy(dhcp, &retention_dhcp, sizeof(struct dhcp));
+  if (dhcp->state == DHCP_STATE_OFF) {
+    return -1;
+  }
+  if (dhcp->offered_ip_addr.addr == 0) {
+    return -1;
+  }
+  if (dhcp_inc_pcb_refcount() != ERR_OK) { /* ensure DHCP PCB is allocated */
+    return -1;
+  }
+  dhcp->pcb_allocated = 1;
+  dhcp->seconds_elapsed = sys_now();
+  is_fast_dhcp = 1;
+
+  netif_set_client_data(&xnetif[0], LWIP_NETIF_CLIENT_DATA_INDEX_DHCP, dhcp);
+  netif_set_addr(&xnetif[0], &dhcp->offered_ip_addr, &dhcp->offered_sn_mask, &dhcp->offered_gw_addr);
+
+  // last local port
+  extern void tcp_set_last_port(uint16_t port);
+  tcp_set_last_port(retention_tcp_port);
+  extern void udp_set_last_port(uint16_t port);
+  udp_set_last_port(retention_udp_port);
+
+  retention_have_new_dhcp = 0;
+  dcache_clean_invalidate_by_addr((uint32_t *) &retention_have_new_dhcp, sizeof(retention_have_new_dhcp));
+
+  return 0;
+}
+
+uint8_t lwip_check_dhcp_resume(void)
+{
+  if ((retention_have_new_dhcp == 1) && (retention_dhcp.state != DHCP_STATE_OFF) && (retention_dhcp.offered_ip_addr.addr != 0)) {
+    return 1;
+  }
+
+  return 0;
+}
+#endif // defined(CONFIG_LWIP_TCP_RESUME) && (CONFIG_LWIP_TCP_RESUME == 1)
+/* Added by Realtek end */
 
 #endif /* LWIP_IPV4 && LWIP_DHCP */

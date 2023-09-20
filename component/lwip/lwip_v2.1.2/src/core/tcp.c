@@ -2727,4 +2727,21 @@ tcp_ext_arg_invoke_callbacks_passive_open(struct tcp_pcb_listen *lpcb, struct tc
 }
 #endif /* LWIP_TCP_PCB_NUM_EXT_ARGS */
 
+/* Added by Realtek start */
+void tcp_reg_active(struct tcp_pcb *pcb)
+{
+  TCP_REG_ACTIVE(pcb);
+}
+
+uint16_t tcp_get_last_port(void)
+{
+  return tcp_port;
+}
+
+void tcp_set_last_port(uint16_t port)
+{
+  tcp_port = port;
+}
+/* Added by Realtek end */
+
 #endif /* LWIP_TCP */

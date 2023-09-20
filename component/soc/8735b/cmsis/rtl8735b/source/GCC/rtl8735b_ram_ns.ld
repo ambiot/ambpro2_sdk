@@ -14,13 +14,14 @@ MEMORY
   
   /* 0x20100200 ~ 0x20101200 4KB is reserved for ROM used RAM bss */
   /* 0x20101200 ~ 0x20105200 16KB is reserved for Bootloader RAM code used */
+  /* 0x20105200 ~ 0x20106200 4KB is reserved for Bootloader RAM BSS used */
   
   /* RAM functions entry table */
-  RAM_FUN_TABLE (rwx)   : ORIGIN = 0x20105200, LENGTH = 0x201052F0 - 0x20105200		/*  240B */
-  RAM_IMG_SIGN (rwx)    : ORIGIN = 0x201052F0, LENGTH = 0x20105300 - 0x201052F0  	/*   16B */
+  RAM_FUN_TABLE (rwx)   : ORIGIN = 0x20106200, LENGTH = 0x201062F0 - 0x20106200		/*  240B */
+  RAM_IMG_SIGN (rwx)    : ORIGIN = 0x201062F0, LENGTH = 0x20106300 - 0x201062F0  	/*   16B */
   
   /* Internal SRAM for text, rodata & data */
-  RAM (rwx)             : ORIGIN = 0x20105300, LENGTH = 0x20156000 - 0x20105300		/*  323.25KB */
+  RAM (rwx)             : ORIGIN = 0x20106300, LENGTH = 0x20156000 - 0x20106300		/*  319.25KB */
 
   /* DDR memory */
   VOE (rwx)          	: ORIGIN = 0x70000000, LENGTH = 0x70100000 - 0x70000000		/*  1MB */

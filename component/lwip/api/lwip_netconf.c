@@ -589,6 +589,19 @@ uint8_t *LwIP_GetMASK(uint8_t idx)
 	return (uint8_t *) & (pnetif->netmask);
 }
 
+uint8_t *LwIP_GetDHCPSERVER(uint8_t idx)
+{
+	struct netif *pnetif = &xnetif[idx];
+	struct dhcp *dhcp = NULL;
+#if LWIP_VERSION_MAJOR >= 2
+	dhcp = ((struct dhcp *)netif_get_client_data(pnetif, LWIP_NETIF_CLIENT_DATA_INDEX_DHCP));
+#else
+	dhcp = pnetif->dhcp;
+#endif
+
+	return (uint8_t *) & (dhcp->server_ip_addr);
+}
+
 void LwIP_wlan_set_netif_info(int idx_wlan, void *dev, unsigned char *dev_addr)
 {
 	rtw_memcpy(xnetif[idx_wlan].hwaddr, dev_addr, 6);

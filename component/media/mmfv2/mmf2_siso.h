@@ -6,6 +6,7 @@
 #include <task.h>
 #include "mmf2_module.h"
 
+#define SISO_CTRL_TIMEOUT 10000
 
 typedef struct mm_siso_s {
 	mm_context_t *input;
@@ -19,6 +20,9 @@ typedef struct mm_siso_s {
 	char        taskname[16];
 	xTaskHandle task;
 	uint32_t    secure_context;
+	uint32_t    timeout_count;
+	uint32_t    crtl_timeout;
+	void		*ctrl_lock;
 } mm_siso_t;
 
 extern int siso_start(mm_siso_t *siso);

@@ -39,6 +39,29 @@ set(OUTSRC_WARN_ERR_FLAGS -Wall -Wpointer-arith -Wstrict-prototypes -Wundef -Wno
 set(LIBS_WARN_ERR_FLAGS -Wall -Wpointer-arith -Wstrict-prototypes -Wundef -Wno-write-strings -Wno-maybe-uninitialized)
 set(WARN_ERR_FLAGS -Wall -Wpointer-arith -Wstrict-prototypes -Wundef -Wno-write-strings -Wno-maybe-uninitialized)
 
+
+if(NOT CONSOLE STREQUAL "UART")
+list(
+    APPEND _wrapper
+#		"-Wl,-wrap,puts"
+#		"-Wl,-wrap,printf"
+#		"-Wl,-wrap,sprintf"
+#		"-Wl,-wrap,snprintf"
+#		"-Wl,-wrap,vsnprintf"
+#		"-Wl,-wrap,vprintf"	
+)
+else()
+list(
+    APPEND _wrapper
+#		"-Wl,-wrap,puts"
+#		"-Wl,-wrap,printf"
+#		"-Wl,-wrap,sprintf"
+#		"-Wl,-wrap,snprintf"
+#		"-Wl,-wrap,vsnprintf"
+#		"-Wl,-wrap,vprintf"	
+)
+endif()
+
 list(
     APPEND _wrapper
 		"-Wl,-wrap,strcat"
@@ -75,19 +98,13 @@ list(
 		"-Wl,-wrap,memcpy"
 		"-Wl,-wrap,memmove"
 		"-Wl,-wrap,memset"
-		"-Wl,-wrap,puts"
-		"-Wl,-wrap,printf"
-#		"-Wl,-wrap,sprintf"
-#		"-Wl,-wrap,snprintf"
-#		"-Wl,-wrap,vsnprintf"
-		"-Wl,-wrap,vprintf"
 		"-Wl,-wrap,_malloc_r"
 		"-Wl,-wrap,_free_r"
-		"-Wl,-wrap,_realloc_r"
+		#"-Wl,-wrap,_realloc_r"
 		"-Wl,-wrap,_calloc_r"
 		"-Wl,-wrap,malloc"
 		"-Wl,-wrap,free"
-		"-Wl,-wrap,realloc"
+		#"-Wl,-wrap,realloc"
 		"-Wl,-wrap,calloc"	
 		"-Wl,-wrap,abort"
 		"-Wl,-wrap,fopen"
@@ -104,6 +121,7 @@ list(
 		"-Wl,-wrap,feof"
 		"-Wl,-wrap,ferror"
 		"-Wl,-wrap,ftell"
+		"-Wl,-wrap,ftruncate"
 		"-Wl,-wrap,fputc"
 		"-Wl,-wrap,fputs"
 		"-Wl,-wrap,fgets"

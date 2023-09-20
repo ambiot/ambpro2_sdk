@@ -4,27 +4,44 @@ project(app)
 
 enable_language(C CXX ASM)
 
+if(BUILD_TZ)
+set(app application.ns)
+else()
 set(app application.ntz)
+endif()
 
 include(../includepath.cmake)
 
 include(./libbsp.cmake OPTIONAL)
-include(./libsoc_ntz.cmake OPTIONAL)
 
+if(BUILD_TZ)
+	include(./libsoc_ns.cmake OPTIONAL)
+else()
+	include(./libsoc_ntz.cmake OPTIONAL)
+endif()
 include(./libwlan.cmake OPTIONAL)
 include(./libwps.cmake OPTIONAL)
+if(BUILD_TZ)
+	include(./libvideo_ns.cmake OPTIONAL)
+else()
+	include(./libvideo_ntz.cmake OPTIONAL)
+endif()
 
-include(./libvideo_ntz.cmake OPTIONAL)
+if(BUILD_LIB)
+	message(STATUS "build libraries")
+else()
+	message(STATUS "use released libraries")
+	link_directories(${prj_root}/GCC-RELEASE/application/output)
+endif()
 
-message(STATUS "use released libraries")
-link_directories(${prj_root}/GCC-RELEASE/application/output)
-
+if(NOT BUILD_TZ)
 ADD_LIBRARY (hal_pmc_lib STATIC IMPORTED )
 SET_PROPERTY ( TARGET hal_pmc_lib PROPERTY IMPORTED_LOCATION ${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/lib/hal_pmc.a )
+endif()
 
 #MBED
 list(
-	APPEND out_sources
+    APPEND out_sources
 	${sdk_root}/component/mbed/targets/hal/rtl8735b/audio_api.c
 	${sdk_root}/component/mbed/targets/hal/rtl8735b/crypto_api.c
 	${sdk_root}/component/mbed/targets/hal/rtl8735b/dma_api.c
@@ -57,7 +74,7 @@ list(
 
 #RTOS
 list(
-	APPEND out_sources
+    APPEND out_sources
 	${sdk_root}/component/os/freertos/${freertos}/Source/croutine.c
 	${sdk_root}/component/os/freertos/${freertos}/Source/event_groups.c
 	${sdk_root}/component/os/freertos/${freertos}/Source/list.c
@@ -66,11 +83,11 @@ list(
 	${sdk_root}/component/os/freertos/${freertos}/Source/tasks.c
 	${sdk_root}/component/os/freertos/${freertos}/Source/timers.c
 	${sdk_root}/component/os/freertos/${freertos}/Source/portable/MemMang/heap_4_2.c
-
+	
 	${sdk_root}/component/os/freertos/freertos_cb.c
 	${sdk_root}/component/os/freertos/freertos_service.c
 	${sdk_root}/component/os/freertos/cmsis_os.c
-
+	
 	${sdk_root}/component/os/os_dep/osdep_service.c
 	${sdk_root}/component/os/os_dep/device_lock.c
 	${sdk_root}/component/os/os_dep/timer_service.c
@@ -89,7 +106,7 @@ list(
 )
 
 list(
-	APPEND out_sources
+    APPEND out_sources
 	#FREERTOS
 	${sdk_root}/component/os/freertos/${freertos}/Source/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
 	${sdk_root}/component/os/freertos/${freertos}/Source/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
@@ -169,16 +186,31 @@ endif()
 
 #USER
 list(
-	APPEND app_sources
+    APPEND app_sources
 	${prj_root}/src/main.c
 )
 
 #MISC
 list(
 	APPEND app_sources
-
+	
 	${sdk_root}/component/soc/8735b/misc/utilities/source/ram/libc_wrap.c
 	${sdk_root}/component/soc/8735b/misc/driver/low_level_io.c
+)
+
+#VIDEO
+list(
+	APPEND app_sources		
+	${sdk_root}/component/video/driver/RTL8735B/video_api.c
+    ${sdk_root}/component/video/osd2/isp_osd_lite.c
+)
+
+#MMF_MODULE
+list(
+	APPEND app_sources	
+	${sdk_root}/component/media/mmfv2/module_video.c
+	${sdk_root}/component/media/mmfv2/module_rtsp2.c
+    ${sdk_root}/component/media/mmfv2/module_vipnn.c
 )
 
 #NN MODEL
@@ -187,28 +219,39 @@ list(
 	${prj_root}/src/test_model/model_yolo.c
 )
 
+#NN utils
+list(
+	APPEND app_sources
+	${prj_root}/src/test_model/nn_utils/sigmoid.c
+	${prj_root}/src/test_model/nn_utils/quantize.c
+	${prj_root}/src/test_model/nn_utils/iou.c
+	${prj_root}/src/test_model/nn_utils/nms.c
+	${prj_root}/src/test_model/nn_utils/tensor.c
+	${prj_root}/src/test_model/nn_utils/class_name.c
+)
+
 
 if(DEFINED EXAMPLE AND EXAMPLE)
-	message(STATUS "EXAMPLE = ${EXAMPLE}")
-	if(EXISTS ${sdk_root}/component/example/${EXAMPLE})
+    message(STATUS "EXAMPLE = ${EXAMPLE}")
+    if(EXISTS ${sdk_root}/component/example/${EXAMPLE})
 		if(EXISTS ${sdk_root}/component/example/${EXAMPLE}/${EXAMPLE}.cmake)
 			message(STATUS "Found ${EXAMPLE} include project")
 			include(${sdk_root}/component/example/${EXAMPLE}/${EXAMPLE}.cmake)
 		else()
 			message(WARNING "Found ${EXAMPLE} include project but ${EXAMPLE}.cmake not exist")
 		endif()
-	else()
-		message(WARNING "${EXAMPLE} Not Found")
-	endif()
-	if(NOT DEBUG)
-		set(EXAMPLE OFF CACHE STRING INTERNAL FORCE)
-	endif()
+    else()
+        message(WARNING "${EXAMPLE} Not Found")
+    endif()
+    if(NOT DEBUG)
+        set(EXAMPLE OFF CACHE STRING INTERNAL FORCE)
+    endif()
 elseif(DEFINED VIDEO_EXAMPLE AND VIDEO_EXAMPLE)
-	message(STATUS "Build VIDEO_EXAMPLE project")
-	include(${prj_root}/src/mmfv2_video_example/video_example_media_framework.cmake)
-	if(NOT DEBUG)
-		set(VIDEO_EXAMPLE OFF CACHE STRING INTERNAL FORCE)
-	endif()
+    message(STATUS "Build VIDEO_EXAMPLE project")
+    include(${prj_root}/src/mmfv2_video_example/video_example_media_framework.cmake)
+    if(NOT DEBUG)
+        set(VIDEO_EXAMPLE OFF CACHE STRING INTERNAL FORCE)
+    endif()
 else()
 endif()
 
@@ -248,16 +291,17 @@ list(
 	APPEND app_inc_path
 
 	"${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/include/pub"
-	"${sdk_root}/component/soc/8735b/cmsis/rtl8735b/lib/include/pub"
-
+    "${sdk_root}/component/soc/8735b/cmsis/rtl8735b/lib/include/pub"
+	
 	${inc_path}
 	${app_example_inc_path}
 	${sdk_root}/component/os/freertos/${freertos}/Source/portable/GCC/ARM_CM33/non_secure
 	${sdk_root}/component/os/freertos/${freertos}/Source/portable/GCC/ARM_CM33/secure
 	${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/source/ram/video/voe_bin
-	${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/source/ram/video/osd
-	${sdk_root}/component/soc/8735b/misc/platform
+    ${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/source/ram/video/osd
+    ${sdk_root}/component/soc/8735b/misc/platform
 	${sdk_root}/component/video/driver/RTL8735B
+    ${sdk_root}/component/video/osd2
 
 	${sdk_root}/component/media/mmfv2
 	${sdk_root}/component/media/rtp_codec
@@ -269,18 +313,16 @@ list(
 	${sdk_root}/component/wifi/wpa_supplicant/src
 	${sdk_root}/component/wifi/wpa_supplicant/src
 	${sdk_root}/component/wifi/driver/src/core/option
-	${sdk_root}/component/wifi/wifi_config
-
+    ${sdk_root}/component/wifi/wifi_config
+	
 	${sdk_root}/component/ssl/ssl_ram_map/rom
-
+	
 	${sdk_root}/component/media/framework
-
-	${prj_root}/src/test_model
+    
+    ${prj_root}/src/test_model
 	${prj_root}/src
-
-	${prj_root}/src/VIPLiteDrv/sdk/inc
-	${prj_root}/src/VIPLiteDrv/driver/inc
-	${prj_root}/src/VIPLiteDrv/hal/inc
+    
+    ${prj_root}/src/${viplite}/sdk/inc
 )
 
 target_include_directories( ${app} PUBLIC ${app_inc_path} )
@@ -288,10 +330,12 @@ target_include_directories( outsrc PUBLIC ${app_inc_path} )
 
 set( wlanlib wlan)
 
+if(NOT BUILD_TZ)
 target_link_libraries(
 	${app}
 	hal_pmc_lib
 )
+endif()
 
 target_link_libraries(
 	${app}
@@ -305,10 +349,10 @@ target_link_libraries(
 	nn
 	lightsensor
 	ispfeature
-
+	
 	${soclib}
 	-Wl,--end-group
-	stdc++
+    stdc++
 	m
 	c
 	gcc
@@ -333,6 +377,49 @@ target_link_options(
 	#"SHELL:${CMAKE_CURRENT_SOURCE_DIR}/build/import.lib"
 )
 
+if(BUILD_TZ)
+target_link_options(
+	${app} 
+	PUBLIC
+	"LINKER:SHELL:-wrap,hal_crypto_engine_init_platform"
+	"LINKER:SHELL:-wrap,hal_pinmux_register"
+	"LINKER:SHELL:-wrap,hal_pinmux_unregister"
+	"LINKER:SHELL:-wrap,hal_otp_byte_rd_syss"
+	"LINKER:SHELL:-wrap,hal_otp_byte_wr_syss"
+	"LINKER:SHELL:-wrap,hal_sys_get_video_info"
+	"LINKER:SHELL:-wrap,hal_sys_peripheral_en"
+	"LINKER:SHELL:-wrap,hal_sys_set_clk"
+	"LINKER:SHELL:-wrap,hal_sys_get_clk"
+	"LINKER:SHELL:-wrap,hal_sys_lxbus_shared_en"
+	"LINKER:SHELL:-wrap,bt_power_on"
+	"LINKER:SHELL:-wrap,hal_pll_98p304_ctrl"
+	"LINKER:SHELL:-wrap,hal_pll_45p158_ctrl"
+	"LINKER:SHELL:-wrap,hal_osc4m_cal"
+	"LINKER:SHELL:-wrap,hal_sdm_32k_enable"
+	"LINKER:SHELL:-wrap,hal_sys_get_rom_ver"
+	"LINKER:SHELL:-wrap,hal_otp_init"
+	"LINKER:SHELL:-wrap,hal_otp_sb_key_get"
+	"LINKER:SHELL:-wrap,hal_otp_sb_key_write"
+	"LINKER:SHELL:-wrap,hal_otp_ssz_lock"
+	"LINKER:SHELL:-wrap,hal_sys_spic_boot_finish"
+	"LINKER:SHELL:-wrap,hal_sys_spic_ddr_ctrl"
+	"LINKER:SHELL:-wrap,hal_sys_spic_phy_en"
+	"LINKER:SHELL:-wrap,hal_sys_spic_set_phy_delay"
+	"LINKER:SHELL:-wrap,hal_sys_spic_read_phy_delay"
+	"LINKER:SHELL:-wrap,hal_sys_bt_uart_mux"
+	"LINKER:SHELL:-wrap,hal_pwm_clock_init"
+	"LINKER:SHELL:-wrap,hal_pwm_clk_sel"
+	"LINKER:SHELL:-wrap,hal_timer_clock_init"
+	"LINKER:SHELL:-wrap,hal_timer_group_sclk_sel"
+	"LINKER:SHELL:-wrap,hal_sys_get_ld_fw_idx"
+	"LINKER:SHELL:-wrap,hal_sys_get_boot_select"
+	"LINKER:SHELL:-wrap,hal_sys_dbg_port_cfg"
+	"LINKER:SHELL:-wrap,hal_otp_byte_rd_sys"
+	"LINKER:SHELL:-wrap,hal_crypto_engine_init_s4ns"
+	"LINKER:SHELL:-wrap,hal_sys_get_chip_id"
+)
+endif()
+
 set_target_properties(${app} PROPERTIES LINK_DEPENDS ${ld_script})
 
 
@@ -342,7 +429,8 @@ add_custom_command(TARGET ${app} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${app}> ${app}.axf
 	COMMAND ${CMAKE_OBJCOPY} -j .bluetooth_trace.text -Obinary ${app}.axf APP.trace
 	COMMAND ${CMAKE_OBJCOPY} -R .bluetooth_trace.text ${app}.axf 
-
+	COMMAND ${CMAKE_READELF} -s -W $<TARGET_FILE:${app}>  > ${app}.symbols
+	
 	#COMMAND [ -d output ] || mkdir output
 	COMMAND ${CMAKE_COMMAND} -E remove_directory output && ${CMAKE_COMMAND} -E make_directory  output
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.nm.map output
@@ -350,6 +438,6 @@ add_custom_command(TARGET ${app} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.map output 
 	COMMAND ${CMAKE_COMMAND} -E copy ${app}.axf output
 	COMMAND ${CMAKE_COMMAND} -E copy APP.trace output 
-
+	
 	COMMAND ${PLAT_COPY} *.a output
 )

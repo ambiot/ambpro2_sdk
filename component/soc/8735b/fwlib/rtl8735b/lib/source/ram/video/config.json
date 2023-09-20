@@ -62,13 +62,15 @@
 	"-cp -f voe_bin/fcs_data_dummy.bin $(OBJCOPYDIR)/../output",
 	"-cp -f voe_bin/sensor.bin $(OBJCOPYDIR)/../output",
 	"-cp -f voe_bin/iq.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/iq_linear.bin $(OBJCOPYDIR)/../output",	
 	"-cp -f voe_bin/fcs_data_gc4653.bin $(OBJCOPYDIR)/../output",
 	"-cp -f voe_bin/fcs_data_gc2053.bin $(OBJCOPYDIR)/../output",	
 	"-cp -f voe_bin/sensor_gc4653.bin $(OBJCOPYDIR)/../output",
 	"-cp -f voe_bin/fcs_data_DvsimC5.bin $(OBJCOPYDIR)/../output",	
 	"-cp -f voe_bin/fcs_data_verifyC1.bin $(OBJCOPYDIR)/../output",
 	"-cp -f voe_bin/fcs_data_sc2336.bin $(OBJCOPYDIR)/../output",
-	"-cp -f voe_bin/sensor_sc2336.bin $(OBJCOPYDIR)/../output"
+	"-cp -f voe_bin/sensor_sc2336.bin $(OBJCOPYDIR)/../output",
+	"-cp -f voe_bin/flash_voe127x.bin $(OBJCOPYDIR)/../output"	
   ],
   
 

@@ -12,11 +12,13 @@
 #include "main.h"
 
 #ifdef CONFIG_WLAN
-#define IW_PASSPHRASE_MAX_SIZE 64
+#define IW_WPA2_PASSPHRASE_MAX_SIZE 64
+#define IW_WPA3_PASSPHRASE_MAX_SIZE 128
+#define IW_PASSPHRASE_MAX_SIZE IW_WPA3_PASSPHRASE_MAX_SIZE
 //#define FAST_RECONNECT_DATA (0x80000 - 0x1000)
 #define NDIS_802_11_LENGTH_SSID         32
 #define A_SHA_DIGEST_LEN		20
-
+#define FCS_CRC_CHECK 0
 
 struct wlan_fast_reconnect {
 	unsigned char version;
@@ -32,13 +34,16 @@ struct wlan_fast_reconnect {
 #if ATCMD_VER == ATVER_2
 	unsigned int    enable;
 #endif
+	unsigned char bssid[6];
+	unsigned int crc;
 };
-
+//
 //Function
 extern wifi_do_fast_connect_ptr p_wifi_do_fast_connect;
 extern write_fast_connect_info_ptr p_store_fast_connect_info;
 
 int check_is_the_same_ap(void);
 void wifi_fast_connect_enable(unsigned char enable);
+void wifi_fast_connect_load_fast_dhcp(void);
 #endif
 #endif //#ifndef __WIFI_FAST_CONNECT__

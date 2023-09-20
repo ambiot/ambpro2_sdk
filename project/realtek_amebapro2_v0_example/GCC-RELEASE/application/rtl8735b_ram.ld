@@ -2,7 +2,7 @@ INCLUDE "romsym_is.so"
 
 /* unit - Mega byte */
 DDR_SIZE = 128;
-NN_SIZE = 8;
+NN_SIZE = 16;
 
 DDR_END = 0x70000000 + (DDR_SIZE - NN_SIZE)*1024*1024;
 NN_END  = 0x70000000 + (DDR_SIZE)*1024*1024;
@@ -19,9 +19,10 @@ MEMORY
   
   /* Jump cross 0x20100200 ~ 0x20101200 for NS ROM code used */
   /* Jump cross 0x20101200 ~ 0x20105200 for Bootloader RAM code used */
-  RAM_FUN_TABLE (rwx)   : ORIGIN = 0x20105200, LENGTH = 0x201052F0 - 0x20105200  /* 240B */
-  RAM_IMG_SIGN (rwx)    : ORIGIN = 0x201052F0, LENGTH = 0x20105300 - 0x201052F0  /*  16B */
-  RAM_1 (rwx)           : ORIGIN = 0x20105300, LENGTH = 0x20120000 - 0x20105300  /* 107KB */
+  /* Jump cross 0x20105200 ~ 0x20106200 for Bootloader RAM BSS  used */
+  RAM_FUN_TABLE (rwx)   : ORIGIN = 0x20106200, LENGTH = 0x201062F0 - 0x20106200  /* 240B */
+  RAM_IMG_SIGN (rwx)    : ORIGIN = 0x201062F0, LENGTH = 0x20106300 - 0x201062F0  /*  16B */
+  RAM_1 (rwx)           : ORIGIN = 0x20106300, LENGTH = 0x20120000 - 0x20106300  /* 107KB */
   RAM_RETENTION (rwx)   : ORIGIN = 0x20120000, LENGTH = 0x20140000 - 0x20120000  /* 128KB retention data */
   RAM_2 (rwx)           : ORIGIN = 0x20140000, LENGTH = 0x20177B00 - 0x20140000  /* 222KB */
   RAM_NC (rwx)          : ORIGIN = 0x20177B00, LENGTH = 0x20179800 - 0x20177B00  /*  7KB*/
@@ -31,9 +32,6 @@ MEMORY
 						/* Raymond  workaround for JIRA-537 issue 0x70000000 --> 0x70000040 */
 						  
   VOE    (rwx)          : ORIGIN = 0x70000000, LENGTH = 0x70100000 - 0x70000000	/*  1MB */
-/* DDR 64M */
-  /*DDR    (rwx) 		    : ORIGIN = 0x70100000, LENGTH = 0x73800000 - 0x70100000*/ /* 55MB */
-  /*NN     (rwx)      	: ORIGIN = 0x73800000, LENGTH = 0x74000000 - 0x73800000*/	/* 8MB */
 
 /* DDR */
   DDR    (rwx) 			: ORIGIN = 0x70100000, LENGTH = DDR_END - 0x70100000 /* 55 + 64MB */
@@ -130,6 +128,7 @@ SECTIONS
 
 	.ram.img.signature :
 	{
+		__ram_readonly_start__ = .;
 		__ram_img_signature__ = .;
 		KEEP(*(.start.ram.sign*))		
 	} > RAM_IMG_SIGN
@@ -153,6 +152,7 @@ SECTIONS
 	.ddr.code.text : 
     {
         . = ALIGN(32);
+		__eram_readonly_start__ = .;
         __ddr_code_text_start__ = .;
         //*libgcc.a:pr-support.o*(.text*)
         //*libstdc++.a:list.o*(.text*)
@@ -194,6 +194,27 @@ SECTIONS
 			
 		. = ALIGN(4);
 		__ram_code_text_end__ = .;
+	} > RAM_1
+
+	.ram.code_rodata : AT (__ram_code_rodata_start__)
+	{
+		. = ALIGN(4);
+		__ram_code_rodata_start__ = .;
+		*ram_start.*o*(.rodata*)
+		*app_start.*o*(.rodata*)
+		//*lib_a*(.rodata*)
+		*hal_sys_ctrl.*o*(.rodata*)
+		*hal_dram*.*o*(.rodata*)
+		*hal_flash.*o*(.rodata*)
+		*hal_spic.*o*(.rodata*)
+		*hal_uart.*o*(.rodata*)
+		*hal_pinmux.*o*(.rodata*)
+		*(.ram.hal_pmc.rodata*)
+		. = ALIGN(32);
+		__ram_code_rodata_end__ = .;
+		
+		. = ALIGN(32);
+		__ram_readonly_end__ = .;
 	} > RAM_1
 
 
@@ -252,24 +273,6 @@ SECTIONS
 		/* All data end */
 		__data_end__ = .;
 
-	} > RAM_1
-
-	.ram.code_rodata : AT (__ram_code_rodata_start__)
-	{
-		. = ALIGN(4);
-		__ram_code_rodata_start__ = .;
-		*ram_start.*o*(.rodata*)
-		*app_start.*o*(.rodata*)
-		//*lib_a*(.rodata*)
-		*hal_sys_ctrl.*o*(.rodata*)
-		*hal_dram*.*o*(.rodata*)
-		*hal_flash.*o*(.rodata*)
-		*hal_spic.*o*(.rodata*)
-		*hal_uart.*o*(.rodata*)
-		*hal_pinmux.*o*(.rodata*)
-		*(.ram.hal_pmc.rodata*)
-		. = ALIGN(4);
-		__ram_code_rodata_end__ = .;
 	} > RAM_1
 
 	.ram.retention.data :
@@ -353,19 +356,10 @@ SECTIONS
 		. = ALIGN(4);
 		__eram_text_start__ = .;
 		*(.text*)
-		*(.sdram.text*)		
+		*(.sdram.text*)
+		*(*.text)
 		__eram_text_end__ = .;
 	} > DDR
-	
-	.ddr.rodata : 
-	{
-		. = ALIGN(4);
-		__eram_rodata_start__ = .;
-		*(.rodata*)
-		*(.rodata.str1*)
-		*(.sdram.rodata*)
-		__eram_rodata_end__ = .;
-	} > DDR	
 
 	/* Add This for C++ support */
 	.ARM.extab  : 
@@ -379,7 +373,31 @@ SECTIONS
 		__exidx_start = .;
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
 		__exidx_end = .;
+		
 	} > DDR
+	
+	.ddr.rodata : 
+	{
+		. = ALIGN(4);
+		__eram_rodata_start__ = .;
+		*(.rodata*)
+		*(.rodata.str1*)
+		*(.sdram.rodata*)
+		*(*.rodata)
+		__test_array_start__ = .;
+		KEEP(*(.test_array*))
+		__test_array_end__ = .;
+		__testcmd_first_start__ = .;
+		KEEP(*(.testatcmd.start*))
+		__testcmd_first_end__ = .;	
+		__testcmd_array_start__ = .;
+		KEEP(*(.testatcmd.*))
+		__testcmd_array_end__ = .;			
+		__eram_rodata_end__ = .;
+		. = ALIGN(32);
+		__eram_readonly_end__ = .;
+	} > DDR	
+
 
 	.ddr.data :
 	{
@@ -388,6 +406,7 @@ SECTIONS
 		*(.data*)
 		*(.sdram.data*)
 		*(.ddr.data)
+		*(*.data)
 		__eram_data_end__ = .;
 	} > DDR
 
@@ -397,8 +416,13 @@ SECTIONS
 		__eram_bss_start__ = .;
 		*(.bss*)
 		*(.sdram.bss*)
+		*(*.bss)
 		__eram_bss_end__ = .;
 		__eram_heap_start__ = .;
+		__used_nn_model_start = .;
+		/* just for post processing */
+		*(.used_nn_model)
+		__used_nn_model_end = .;
 	} > DDR
 
 	.voe :

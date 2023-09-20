@@ -33,6 +33,10 @@
     "-D__DSP_PRESENT"
   ],
   
+  "PlatformCfgDep": {
+    "CONFIG_CMSIS_DSP_EN": 1
+  },
+    
   "excludePath": [
   ],
 

@@ -31,6 +31,7 @@ list(
 
 list(
 	APPEND bootloader_sources
+	${sdk_root}/component/video/driver/RTL8735B/video_boot.c
 	${sdk_root}/component/soc/8735b/misc/platform/user_boot.c
 )
 
@@ -60,6 +61,7 @@ target_include_directories(
 	bootfcs
 	PUBLIC
     
+	"${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/include/pub"
     "${sdk_root}/component/soc/8735b/cmsis/rtl8735b/lib/include/pub"
 
 	${inc_path}
@@ -72,6 +74,7 @@ target_include_directories(
 	${bootloader} 
 	PUBLIC
     
+	"${sdk_root}/component/soc/8735b/fwlib/rtl8735b/lib/include/pub"
     "${sdk_root}/component/soc/8735b/cmsis/rtl8735b/lib/include/pub"
 
 	${inc_path}
@@ -102,9 +105,15 @@ endif()
 target_link_options(
 	${bootloader} 
 	PUBLIC
-	"LINKER:SHELL:-L ${CMAKE_CURRENT_SOURCE_DIR}/../ROM/GCC"
+	"LINKER:SHELL:-L ${sdk_root}/component/soc/8735b/cmsis/rtl8735b/source/GCC"
 	"LINKER:SHELL:-T ${ld_script}"
 	"LINKER:SHELL:-Map=${CMAKE_CURRENT_BINARY_DIR}/bootloader.map"
+	"LINKER:-wrap,puts"
+	"LINKER:-wrap,printf"
+	"LINKER:-wrap,sprintf"
+	"LINKER:-wrap,snprintf"
+	"LINKER:-wrap,vsnprintf"
+	"LINKER:-wrap,vprintf"		
 )
 
 set_target_properties(${bootloader} PROPERTIES LINK_DEPENDS ${ld_script})

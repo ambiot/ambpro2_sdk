@@ -156,6 +156,9 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 #if CONFIG_WLAN
     if(!rltk_wlan_running(netif_get_idx(netif)))
         return ERR_IF;
+	
+    if (!(netif->flags & NETIF_FLAG_LINK_UP))
+		return ERR_OK;
 #endif
     for (q = p; q != NULL && sg_len < MAX_ETH_DRV_SG; q = q->next) {
         sg_list[sg_len].buf = (unsigned int) q->payload;
@@ -235,6 +238,9 @@ void ethernetif_recv(struct netif *netif, int total_len)
 #if CONFIG_WLAN
     if(!rltk_wlan_running(netif_get_idx(netif)))
         return;
+	
+	if (!(netif->flags & NETIF_FLAG_LINK_UP))
+		return;
 #endif
 #if CONFIG_BRIDGE
     if (get_bridge_portnum() != (NET_IF_NUM - 1)) {

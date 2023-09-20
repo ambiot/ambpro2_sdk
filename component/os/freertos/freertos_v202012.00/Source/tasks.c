@@ -367,9 +367,12 @@ PRIVILEGED_DATA static List_t xPendingReadyList;                         /*< Tas
     int FreeRTOS_errno = 0;
 #endif
 
+// added to prevent compile error if initial_tick_count does not exist
+__attribute__((weak)) uint32_t initial_tick_count = 0;
+
 /* Other file private variables. --------------------------------*/
 PRIVILEGED_DATA static volatile UBaseType_t uxCurrentNumberOfTasks = ( UBaseType_t ) 0U;
-PRIVILEGED_DATA static volatile TickType_t xTickCount = ( TickType_t ) configINITIAL_TICK_COUNT;
+PRIVILEGED_DATA static volatile TickType_t xTickCount = ( TickType_t ) 0U; //configINITIAL_TICK_COUNT;
 PRIVILEGED_DATA static volatile UBaseType_t uxTopReadyPriority = tskIDLE_PRIORITY;
 PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning = pdFALSE;
 PRIVILEGED_DATA static volatile TickType_t xPendedTicks = ( TickType_t ) 0U;
@@ -3532,6 +3535,9 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
                     mtCOVERAGE_TEST_MARKER();
                 }
             }
+        #else
+        /* enter power saving mode until next interrupt */
+        asm(" wfi");
         #endif /* configUSE_TICKLESS_IDLE */
     }
 }

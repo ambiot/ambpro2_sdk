@@ -19,8 +19,9 @@ add_custom_command(
 	
 	#set POSTBUILD_SENSOR_SET
 	#set POSTBUILD_ISP_IQ
-	COMMAND ${CMAKE_COMMAND} -E copy ${POSTBUILD_SENSOR_SET} amebapro2_sensor_set.json
-	COMMAND ${CMAKE_COMMAND} -E copy ${POSTBUILD_ISP_IQ} amebapro2_isp_iq.json
+	#COMMAND ${CMAKE_COMMAND} -E copy ${POSTBUILD_SENSOR_SET} amebapro2_sensor_set.json
+	#COMMAND ${CMAKE_COMMAND} -E copy ${POSTBUILD_ISP_IQ} amebapro2_isp_iq.json
+	COMMAND ${GENSNRLST} ${prj_root}/inc/sensor.h
 	#COMMAND cp fsc
 	#COMMAND cp iq
 	#COMMAND cp sensor

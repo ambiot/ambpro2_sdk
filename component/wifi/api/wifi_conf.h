@@ -360,6 +360,13 @@ int wifi_is_connected_to_ap(void);
 rtw_join_status_t wifi_get_join_status(void);
 
 /**
+ * @brief  set join status during wifi connectection
+ * @param  join status
+ * @return None
+ */
+void wifi_set_join_status(rtw_join_status_t status);
+
+/**
  * @brief  Initiate a scan to search for 802.11 networks.
   * Synchronized scan and asynchronized scan can be confgiured by the input param block.
   * For asynchronized scan, there are two different ways about how the scan result will be reported.
@@ -410,6 +417,13 @@ int wifi_get_scan_records(unsigned int *AP_num, char *scan_buf);
  * 	RTW_SUCCESS and user callback won't be executed.
  */
 int wifi_scan_abort(void);
+
+/**
+ * @brief  Abort onoging wifi connection
+ * @return  RTW_SUCCESS or RTW_ERROR.
+ * @note  This is an asynchronized function and will return immediately, return value
+ */
+int wifi_connection_abort(void);
 
 /**
  * @brief  Set IPS/LPS mode.
@@ -1031,8 +1045,12 @@ int wifi_set_tx_rate_by_ToS(unsigned char enable, unsigned char ToS_precedence, 
  * +--------------------------+-------------+-------------+
  * |        TXOP Limit        |ECWmin/ECWmax|  ACI/AIFSN  |
  * +--------------------------+-------------+-------------+
- * 	BIT31~16 corresponding to TXOP Limit, BIT15~8 corresponding
- * 	to ECWmin/ECWmax, BIT7~0 corresponding to ACI/AIFSN.
+ * 	BIT31~16 corresponding to TXOP Limit,
+ *  BIT15~12 corresponding to ECWmax,
+ *  BIT11~8 corresponding to ECWmin,
+ *  BIT6~5 corresponding to ACI.
+ *         00b: BE, 01b: BK, 10b: VI, 11b: VO
+ *  BIT3~0 corresponding to AIFSN (AIFS = AIFSN * slot time + SIFS).
  * @return  RTW_SUCCESS or RTW_ERROR
  */
 int wifi_set_EDCA_param(unsigned int AC_param);
@@ -1090,9 +1108,41 @@ int wifi_wowlan_set_arp_rsp_keep_alive(int enable);
 #endif
 
 #if defined CONFIG_WOWLAN_DTIMTO || defined __DOXYGEN__
+/**
+ * @brief   tcp keep alive fine tune
+ *
+ * @param[in]   dtimto_enable : enable or disable
+ * @param[in]   retry_inc : change dtim to this value
+ * @param[in]   ack_timeout : timeout for wait tcp ack
+ * @param[in]   dtim : TBTT interval
+ * @return  RTW_SUCCESS
+ */
 int wifi_wowlan_set_dtimto(uint8_t dtimto_enable, uint8_t retry_inc, uint8_t ack_timeout, uint8_t dtim);
 #endif
 
+/**
+ * @brief   smart dtim in wowlan keep alive
+ *
+ * @param[in]   check_period : check period of TBTT
+ * @param[in]   threshold : threshold of beacon lose
+ * @param[in]   change_dtim : change dtim
+ * @param[in]   dtim : TBTT interval
+ * @return  RTW_SUCCESS
+ */
+#if defined CONFIG_SMART_DTIM  || defined __DOXYGEN
+int wifi_wowlan_set_smartdtim(uint8_t check_period, uint8_t threshold, uint8_t change_dtim, uint8_t dtim);
+#endif
+
+/**
+ * @brief   wowlan parameter setting
+ *
+ * @param[in]   fwdis_period : fw decision disconnect check period
+ * @param[in]   fwdis_trypktnum : fw decision disconnect null packet retry
+ * @param[in]   pno_enable : pno method enable
+ * @param[in]   pno_timeout : timeout for wait ap enable
+ * @param[in]   l2_keepalive_period : send period of l2 keep alive
+ * @return  RTW_SUCCESS
+ */
 #if defined CONFIG_WOWLAN_PARAM || defined __DOXYGEN__
 int wifi_wowlan_set_wowlan_param(u8  fwdis_period,
 								 u8  fwdis_trypktnum,
@@ -1101,10 +1151,50 @@ int wifi_wowlan_set_wowlan_param(u8  fwdis_period,
 								 u8  l2_keepalive_period);
 #endif
 
-#if defined CONFIG_SMART_DTIM || defined __DOXYGEN__
-int wifi_wowlan_set_smartdtim(uint8_t check_period, uint8_t threshold, uint8_t change_dtim, uint8_t dtim);
+
+#if defined CONFIG_ARP_REQUEST_KEEP_ALIVE  || defined __DOXYGEN__
+/**
+ * @brief   use ARP request as keep alive packet instead of null frame
+ *
+ * @param[in]   powerbit : power bit setting
+ * @param[in]   dtim1to : change to dtim1
+ * @return  RTW_SUCCESS
+ */
+int wifi_wowlan_set_arpreq_keepalive(u8  powerbit,
+									 u8  dtim1to);
 #endif
 
+#if defined CONFIG_WOWLAN_IO_WDT || defined __DOXYGEN__
+/**
+ * @brief   set gpio pull ctrl in wowlan
+ *
+ * @param[in]   gpio : gpiof number
+ * @param[in]   interval : pull ctrl interval
+ * @param[in]   pull_ctrl : gpio pull ctrl
+ * @return  RTW_SUCCESS
+ */
+int wifi_wowlan_set_wdt(u8  gpio,
+						u8  interval,
+						u8	pull_ctrl,
+						u8  pulse_duration);
+#endif
+
+
+#if defined CONFIG_WOWLAN_BCN_TRACK || defined __DOXYGEN__
+/**
+ * @brief   set bcn track parameters in wowlan
+ *
+ * @param[in]   start_window : start window size with tbtt
+ * @param[in]   max_window : max window size with tbtt
+ * @param[in]   increment_steps : window size increment steps with tbtt
+ * @param[in]   duration : beacon missing recovery duration
+ * @return  RTW_SUCCESS
+ */
+int wifi_wowlan_set_bcn_track(u8  start_window,
+							  u8  max_window,
+							  u8  increment_steps,
+							  u8  duration);
+#endif
 
 // WoWlan related
 //-------------------------------------------------------------//
@@ -1176,6 +1266,50 @@ int wifi_csi_config(rtw_csi_action_parm_t *act_param);
  * @return  RTW_SUCCESS or RTW_ERROR
  */
 int wifi_csi_report(u32 buf_len, u8 *csi_buf, u32 *len, rtw_csi_header_t *csi_header);
+
+/**
+ * @brief  set scan timeout
+ * @param[in]  active_to: active scan time per channel, units: ms
+ * @param[in]  passive_to: passive scan time per channel, units: ms
+ * @param[in]  home_to: home channel scan time, units: ms
+ * @param[in]  probe_cnt: transmit number of probes per active channel.
+ * @return None
+ */
+void wifi_set_scan_time(unsigned short active_to, unsigned short passive_to, unsigned short home_to, unsigned char probe_cnt);
+
+/**
+ * @brief  set RTS/CTS capability
+ * @param[in]  enable:
+ *  set 1 to enable RTS/CTS capability
+ * 	set 0 to disable RTS/CTS capability
+ * @param[in]  rts_threshold: RTS Threshold is used to enable/disable soft flow control mechanism.
+ *             If the packet size is above the threshold value, it will enable the feature. Otherwise, it will disable the featue.
+ * @return None
+ */
+void wifi_set_rts(unsigned char enable, unsigned int rts_threshold);
+
+/**
+ * @brief  set packet TX retry limit
+ * @param[in]  short_retry: The requirement is to configure the short packet transmission retry limit (i.e. packet shorter than RTS threshold)
+ * @param[in]  long_retry: The requirement is to configure the long packet transmission retry limit (i.e. packet longer than RTS threshold)
+ * @return  0 if success, otherwise return -1.
+ */
+int wifi_set_retry_limit(unsigned char short_retry, unsigned char long_retry);
+
+/**
+ * @brief  set start rate of Rate Adaptative
+ * @param[in]  rate: The range is MCS0(MGN_MCS0) ~ MCS7(MGN_MCS7)
+ * @return  0 if success, otherwise return -1.
+ */
+int wifi_set_ra_start_rate(unsigned char rate);
+
+/**
+ * @brief  set max rate of Rate Adaptative
+ * @param[in]  max_rate: The range is MCS0(MGN_MCS0) ~ MCS7(MGN_MCS7)
+ * @return  0 if success, otherwise return -1.
+ */
+int wifi_set_ra_max_rate(unsigned char max_rate);
+
 /**
 * @}
 */
