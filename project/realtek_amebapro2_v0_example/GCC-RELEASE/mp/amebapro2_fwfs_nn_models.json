@@ -4,9 +4,8 @@
 	"PROFILE":["FWFS"],
 	"FWFS":{
         "files":[
-			"yolov4_tiny",
-			"scrfd320p",
-			"mobilefacenet_i8"
+			"plumerai_detector",
+			"plumerai_embedder"
 		]
 	},
     "yolov4_tiny":{
@@ -43,5 +42,16 @@
 		"name" : "scrfd.nb",
 		"source":"binary",
 		"file":"scrfd_500m_bnkps_576x320_u8.nb"
+    },
+
+	"plumerai_detector": {
+		"name": "plumerai_detector.nb",
+		"source": "binary",
+		"file": "plumerai_detector.nb"
+	},
+	"plumerai_embedder": {
+		"name": "plumerai_embedder.nb",
+		"source": "binary",
+		"file": "plumerai_embedder.nb"
     }
 }

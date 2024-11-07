@@ -42,7 +42,9 @@ static void example_mmf2_video_surport(void)
 
 	// H264 -> RTSP (V1)
 	// RGB  -> NN object detect (V4)
-	mmf2_video_example_vipnn_rtsp_init();
+	// ---- Plumerai change begin ----
+	mmf2_video_plumerai_ffid_rtsp();
+	// ---- Plumerai change end ----
 }
 
 void video_example_main(void *param)

@@ -26,4 +26,8 @@ void mmf2_video_example_v1_init(void);
 
 void mmf2_video_example_vipnn_rtsp_init(void);
 
+// ---- Plumerai change begin ----
+void mmf2_video_plumerai_ffid_rtsp(void);
+// ---- Plumerai change end ----
+
 #endif /* MMF2_VIDEO_EXAMPLE_H */

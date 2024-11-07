@@ -27,6 +27,10 @@ else()
 	include(./libvideo_ntz.cmake OPTIONAL)
 endif()
 
+# ---- Plumerai change begin ----
+include(${sdk_root}/../plumerai/example_app/plumerai.cmake)
+# ---- Plumerai change end ----
+
 if(BUILD_LIB)
 	message(STATUS "build libraries")
 else()
